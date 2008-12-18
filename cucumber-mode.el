@@ -99,3 +99,7 @@
   (run-mode-hooks))
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
+
+; snippets
+(if (functionp 'yas/load-directory)
+      (yas/load-directory (concat (file-name-directory load-file-name) "snippets")))
