@@ -95,6 +95,7 @@
   (use-local-map feature-mode-map)
   (setq mode-name "Feature")
   (setq major-mode 'feature-mode)
-  (feature-mode-variables))
+  (feature-mode-variables)
+  (run-mode-hooks))
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
