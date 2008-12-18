@@ -96,3 +96,5 @@
   (setq mode-name "Feature")
   (setq major-mode 'feature-mode)
   (feature-mode-variables))
+
+(add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
