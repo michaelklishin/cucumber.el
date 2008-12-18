@@ -22,16 +22,16 @@
 ;; Keywords and font locking
 ;;
 
-(defconst story-mode-keywords
+(defconst feature-mode-keywords
   '("Feature" "Scenario", "Given", "Then", "When", "And"))
 
 (cond
  ((featurep 'font-lock)
   (or (boundp 'font-lock-variable-name-face)
       (setq font-lock-variable-name-face font-lock-type-face)))
- (set (make-local-variable 'font-lock-syntax-table) story-font-lock-syntax-table))
+ (set (make-local-variable 'font-lock-syntax-table) feature-font-lock-syntax-table))
 
-(defconst story-font-lock-keywords
+(defconst feature-font-lock-keywords
   (list
    ;; scenario title
    '("Scenario" . font-lock-function-name-face)
@@ -47,52 +47,52 @@
 ;; Keymap
 ;;
 
-(defvar story-mode-map nil "Keymap used in story mode")
+(defvar feature-mode-map nil "Keymap used in feature mode")
 
-(if story-mode-map
+(if feature-mode-map
     nil
-  (setq story-mode-map (make-sparse-keymap))
-  (define-key story-mode-map "\C-m" 'newline))
+  (setq feature-mode-map (make-sparse-keymap))
+  (define-key feature-mode-map "\C-m" 'newline))
 
 ;;
 ;; Syntax table
 ;;
 
-(defvar story-mode-syntax-table nil
+(defvar feature-mode-syntax-table nil
   "Syntax table in use in ruby-mode buffers.")
 
-(if story-mode-syntax-table
+(if feature-mode-syntax-table
     nil
-  (setq story-mode-syntax-table (make-syntax-table)))
+  (setq feature-mode-syntax-table (make-syntax-table)))
 
 ;;
 ;; Variables
 ;;
 
-(defcustom story-indent-level 2
-  "Indentation of story statements"
-  :type 'integer :group 'story)
+(defcustom feature-indent-level 2
+  "Indentation of feature statements"
+  :type 'integer :group 'feature)
 
-(defun story-mode-variables ()
-  (set-syntax-table story-mode-syntax-table)
+(defun feature-mode-variables ()
+  (set-syntax-table feature-mode-syntax-table)
   (setq require-final-newline t)
   (setq comment-start "# ")
   (setq comment-start-skip "#+ *")  
   (setq comment-end "")
   (setq parse-sexp-ignore-comments t)
-  (set (make-local-variable 'font-lock-defaults) '((story-font-lock-keywords) nil nil))
-  (set (make-local-variable 'font-lock-keywords) story-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults) '((feature-font-lock-keywords) nil nil))
+  (set (make-local-variable 'font-lock-keywords) feature-font-lock-keywords))
 
 ;;
 ;; Mode function
 ;;
 
 ;;;###autoload
-(defun story-mode()
+(defun feature-mode()
   "Major mode for editing plain text stories"
   (interactive)
   (kill-all-local-variables)
-  (use-local-map story-mode-map)
-  (setq mode-name "Story")
-  (setq major-mode 'story-mode)
-  (story-mode-variables))
+  (use-local-map feature-mode-map)
+  (setq mode-name "Feature")
+  (setq major-mode 'feature-mode)
+  (feature-mode-variables))
