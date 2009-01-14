@@ -33,13 +33,14 @@
 
 (defconst feature-font-lock-keywords
   (list
-   '("Feature:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-type-face t)))
-   '("Scenario\\(?: Outline\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
-   '("Given" . font-lock-keyword-face)
-   '("When" . font-lock-keyword-face)
-   '("Then" . font-lock-keyword-face)
-   '("And" . font-lock-keyword-face)
-   '("\\(?:More \\)?Examples:" . font-lock-keyword-face)
+   '("^ *Feature:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-type-face t)))
+   '("^ *Scenario\\(?: Outline\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
+   '("^ *Given" . font-lock-keyword-face)
+   '("^ *When" . font-lock-keyword-face)
+   '("^ *Then" . font-lock-keyword-face)
+   '("^ *And" . font-lock-keyword-face)
+   '("^ *\\(?:More \\)?Examples:" . font-lock-keyword-face)
+   '("^ *#.*" 0 font-lock-comment-face t)
    ))
 
 
@@ -62,10 +63,7 @@
   "Syntax table in use in ruby-mode buffers.")
 
 (unless feature-mode-syntax-table
-  (setq feature-mode-syntax-table (make-syntax-table))
-  (with-syntax-table feature-mode-syntax-table
-    (modify-syntax-entry ?# "<")
-    (modify-syntax-entry ?\n ">")))
+  (setq feature-mode-syntax-table (make-syntax-table)))
 
 ;;
 ;; Variables
