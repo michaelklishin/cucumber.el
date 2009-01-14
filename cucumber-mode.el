@@ -61,9 +61,11 @@
 (defvar feature-mode-syntax-table nil
   "Syntax table in use in ruby-mode buffers.")
 
-(if feature-mode-syntax-table
-    nil
-  (setq feature-mode-syntax-table (make-syntax-table)))
+(unless feature-mode-syntax-table
+  (setq feature-mode-syntax-table (make-syntax-table))
+  (with-syntax-table feature-mode-syntax-table
+    (modify-syntax-entry ?# "<")
+    (modify-syntax-entry ?\n ">")))
 
 ;;
 ;; Variables
