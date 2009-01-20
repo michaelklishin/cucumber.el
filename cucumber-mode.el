@@ -69,6 +69,9 @@
 ;; Variables
 ;;
 
+(defvar feature-mode-hook nil
+  "Hook run when entering `feature-mode'.")
+
 (defcustom feature-indent-level 2
   "Indentation of feature statements"
   :type 'integer :group 'feature)
@@ -96,7 +99,7 @@
   (setq mode-name "Feature")
   (setq major-mode 'feature-mode)
   (feature-mode-variables)
-  (run-mode-hooks))
+  (run-mode-hooks 'feature-mode-hook))
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
