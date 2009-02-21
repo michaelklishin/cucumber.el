@@ -34,6 +34,7 @@
 (defconst feature-font-lock-keywords
   (list
    '("^ *Feature:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-type-face t)))
+   '("^ *Background:$" (0 font-lock-keyword-face))
    '("^ *Scenario\\(?: Outline\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
    '("^ *Given" . font-lock-keyword-face)
    '("^ *When" . font-lock-keyword-face)
