@@ -104,6 +104,17 @@
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
-; snippets
-(if (functionp 'yas/load-directory)
-      (yas/load-directory (concat (file-name-directory load-file-name) "snippets")))
+;;
+;; Snippets
+;;
+
+(defvar feature-snippet-directory (concat (file-name-directory load-file-name) "snippets")
+  "Path to the feature-mode snippets.
+
+If the yasnippet library is loaded, snippets in this directory
+are loaded on startup.  If nil, don't load snippets.")
+
+(when (and (featurep 'yasnippet)
+           feature-snippet-directory
+           (file-exists-p feature-snippet-directory))
+  (yas/load-directory feature-snippet-directory))
