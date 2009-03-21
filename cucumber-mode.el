@@ -40,6 +40,7 @@
    '("^ *When" . font-lock-keyword-face)
    '("^ *Then" . font-lock-keyword-face)
    '("^ *And" . font-lock-keyword-face)
+   '("^ *@.*" . font-lock-preprocessor-face)
    '("^ *\\(?:More \\)?Examples:" . font-lock-keyword-face)
    '("^ *#.*" 0 font-lock-comment-face t)
    ))
