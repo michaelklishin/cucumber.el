@@ -247,3 +247,6 @@ are loaded on startup.  If nil, don't load snippets.")
          (goto-char e)
          (delete-horizontal-space)
          (insert-before-markers (make-string (- (+ s width 2) (point)) ?\ )))))))
+
+(provide 'cucumber-mode)
+(provide 'feature-mode)
