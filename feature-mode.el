@@ -20,7 +20,7 @@
 ;; (add-to-list 'load-path "~/.emacs.d/elisp/feature-mode")
 ;; ;; and load it
 ;; (autoload 'feature-mode "feature-mode" "Mode for editing cucumber files" t)
-;; (add-to-list 'feature-mode '("\.feature$" . feature-mode))
+;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
 
 (eval-when-compile (require 'cl))
 
