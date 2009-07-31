@@ -63,8 +63,8 @@
     nil
   (setq feature-mode-map (make-sparse-keymap))
   (define-key feature-mode-map "\C-m" 'newline)
-  (define-key feature-mode-map  (kbd "C-c ;s") 'feature-verify-scenario-at-pos)
-  (define-key feature-mode-map  (kbd "C-c ;v") 'feature-verify-all-scenarios-in-buffer))
+  (define-key feature-mode-map  (kbd "C-c ,s") 'feature-verify-scenario-at-pos)
+  (define-key feature-mode-map  (kbd "C-c ,v") 'feature-verify-all-scenarios-in-buffer))
 
 ;;
 ;; Syntax table
