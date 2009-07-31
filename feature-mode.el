@@ -154,16 +154,19 @@ are loaded on startup.  If nil, don't load snippets.")
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
   (interactive)
-  (compile (concat "rake features CUCUMBER_OPTS=\"--no-color  -n \\\"" (feature-scenario-name-at-pos) "\\\"\""))
-  (end-of-buffer-other-window 0))
+  (feature-run-cucumber (feature-scenario-names-to-name-opts (cons (feature-scenario-name-at-pos) '()))))
 
 (defun feature-verify-all-scenarios-in-buffer ()
   "Run all the scenarios defined in current buffer."
   (interactive)
-  (let ((cuke-opts (feature-scenario-names-to-name-opts (feature-scenario-names-in-buffer))))
-    (compile (concat "rake features CUCUMBER_OPTS=\"--no-color" cuke-opts "\"")))
-  (end-of-buffer-other-window 0))
+  (feature-run-cucumber (feature-scenario-names-to-name-opts (feature-scenario-names-in-buffer))))
 
+(defun feature-run-cucumber (cuke-opts-str)
+  "Runs cucumber with the specified options"
+  (compile (concat "rake features CUCUMBER_OPTS=\"--no-color" cuke-opts-str "\""))
+  (end-of-buffer-other-window 0)
+  (with-current-buffer "*compilation*"
+    (setq default-directory (feature-project-root))))
 
 (defun feature-scenario-names-in-buffer (&optional so-far)
   "Returns list of all scenario names found in buffer"
@@ -175,6 +178,7 @@ are loaded on startup.  If nil, don't load snippets.")
 	  (feature-scenario-names-in-buffer (cons (match-string 1) so-far))
 	so-far))))
 
+
 (defun feature-scenario-names-to-name-opts (scenario-names &optional opts-str)
   "Build a string that is a series -n options suitable to be pass to cucumber"
   (let ((opts-str (or opts-str "")))
@@ -183,6 +187,18 @@ are loaded on startup.  If nil, don't load snippets.")
 		(feature-scenario-names-to-name-opts (cdr scenario-names)))
       opts-str)))
   
+(defun feature-root-directory-p (a-directory)
+  "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
+  (equal a-directory (rspec-parent-directory a-directory)))
+
+(defun feature-project-root (&optional directory)
+  "Finds the root directory of the project by walking the directory tree until it finds a rake file."
+  (let ((directory (file-name-as-directory (or directory default-directory))))
+    (if (feature-root-directory-p directory) (error "No rakefle found"))
+    (if (file-exists-p (concat directory "Rakefile")) 
+	directory
+      (feature-project-root (file-name-directory (directory-file-name directory))))))
+
 
 
 (provide 'cucumber-mode)
