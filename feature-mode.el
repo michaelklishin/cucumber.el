@@ -62,7 +62,9 @@
 (if feature-mode-map
     nil
   (setq feature-mode-map (make-sparse-keymap))
-  (define-key feature-mode-map "\C-m" 'newline))
+  (define-key feature-mode-map "\C-m" 'newline)
+  (define-key feature-mode-map  (kbd "C-c ;s") 'feature-verify-scenario-at-pos)
+  (define-key feature-mode-map  (kbd "C-c ;v") 'feature-verify-all-scenarios-in-buffer))
 
 ;;
 ;; Syntax table
@@ -131,6 +133,57 @@ are loaded on startup.  If nil, don't load snippets.")
            feature-snippet-directory
            (file-exists-p feature-snippet-directory))
   (yas/load-directory feature-snippet-directory))
+
+
+;;
+;; Verifying features
+;;
+
+(defconst feature-scenario-pattern  "^[[:space:]]*Scenario:[[:space:]]*\\(.*\\)[[:space:]]*$")
+
+(defun feature-scenario-name-at-pos (&optional pos)
+  "Returns the name of the scenario at the specified position. if pos is not specified the current buffer location will be used."
+  (interactive)
+  (let ((start (or pos (point))))
+    (save-excursion
+      (end-of-line)
+      (unless (re-search-backward feature-scenario-pattern nil t)
+	(error "Unable to find an scenario"))
+      (match-string 1))))
+
+(defun feature-verify-scenario-at-pos (&optional pos)
+  "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
+  (interactive)
+  (compile (concat "rake features CUCUMBER_OPTS=\"--no-color  -n \\\"" (feature-scenario-name-at-pos) "\\\"\""))
+  (end-of-buffer-other-window 0))
+
+(defun feature-verify-all-scenarios-in-buffer ()
+  "Run all the scenarios defined in current buffer."
+  (interactive)
+  (let ((cuke-opts (feature-scenario-names-to-name-opts (feature-scenario-names-in-buffer))))
+    (compile (concat "rake features CUCUMBER_OPTS=\"--no-color" cuke-opts "\"")))
+  (end-of-buffer-other-window 0))
+
+
+(defun feature-scenario-names-in-buffer (&optional so-far)
+  "Returns list of all scenario names found in buffer"
+  (save-excursion
+    (unless so-far 
+      (beginning-of-buffer))
+    (let ((so-far (or so-far `())))
+      (if (re-search-forward feature-scenario-pattern nil t)
+	  (feature-scenario-names-in-buffer (cons (match-string 1) so-far))
+	so-far))))
+
+(defun feature-scenario-names-to-name-opts (scenario-names &optional opts-str)
+  "Build a string that is a series -n options suitable to be pass to cucumber"
+  (let ((opts-str (or opts-str "")))
+    (if scenario-names
+	(concat opts-str " -n \\\"" (car scenario-names) "\\\"" 
+		(feature-scenario-names-to-name-opts (cdr scenario-names)))
+      opts-str)))
+  
+
 
 (provide 'cucumber-mode)
 (provide 'feature-mode)
