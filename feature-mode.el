@@ -22,6 +22,15 @@
 ;; (autoload 'feature-mode "feature-mode" "Mode for editing cucumber files" t)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
 
+;; Key Bindings
+;; ------------
+;;
+;;  \C-c ,v
+;;  :   Verify all scenarios in the current buffer file.
+;;
+;;  \C-c ,s 
+;;  :   Verify the scenario under the point in the current buffer.
+
 (eval-when-compile (require 'cl))
 
 ;;
