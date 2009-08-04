@@ -192,7 +192,7 @@ are loaded on startup.  If nil, don't load snippets.")
   "Build a string that is a series -n options suitable to be pass to cucumber"
   (let ((opts-str (or opts-str "")))
     (if scenario-names
-	(concat opts-str " -n \\\"" (car scenario-names) "\\\"" 
+	(concat opts-str " -n \\\"^" (replace-regexp-in-string "\\([()]\\)" "\\\\\\1" (car scenario-names)) "$\\\"" 
 		(feature-scenario-names-to-name-opts (cdr scenario-names)))
       opts-str)))
   
