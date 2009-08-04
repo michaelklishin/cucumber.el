@@ -192,10 +192,14 @@ are loaded on startup.  If nil, don't load snippets.")
   "Build a string that is a series -n options suitable to be pass to cucumber"
   (let ((opts-str (or opts-str "")))
     (if scenario-names
-	(concat opts-str " -n \\\"^" (replace-regexp-in-string "\\([()]\\)" "\\\\\\1" (car scenario-names)) "$\\\"" 
+	(concat opts-str " -n \\\"^" (feature-escape-scenario-name (car scenario-names)) "$\\\"" 
 		(feature-scenario-names-to-name-opts (cdr scenario-names)))
       opts-str)))
-  
+
+(defun feature-escape-scenario-name (scenario-name)
+  "Escapes all the characaters in a scenario name that mess up using in the -n options"
+  (replace-regexp-in-string "\\(\"\\)" "\\\\\\\\\\\\\\1" (replace-regexp-in-string "\\([()\']\\|\\[\\|\\]\\)" "\\\\\\1" scenario-name)))
+
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
   (equal a-directory (rspec-parent-directory a-directory)))
