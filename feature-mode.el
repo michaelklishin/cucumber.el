@@ -30,6 +30,9 @@
 ;;
 ;;  \C-c ,s 
 ;;  :   Verify the scenario under the point in the current buffer.
+;;
+;;  \C-c ,r 
+;;  :   Repeat the last verification process.
 
 (eval-when-compile (require 'cl))
 
@@ -170,8 +173,14 @@ are loaded on startup.  If nil, don't load snippets.")
   (interactive)
   (feature-run-cucumber (feature-scenario-names-to-name-opts (feature-scenario-names-in-buffer))))
 
+(defun feature-register-verify-redo (redoer)
+  "Register a bit of code that will repeat a verification process"
+  (let ((redoer-cmd (eval (append '(lambda () (interactive)) (list redoer)))))
+    (global-set-key (kbd "C-c ,r") redoer-cmd)))
+
 (defun feature-run-cucumber (cuke-opts-str)
   "Runs cucumber with the specified options"
+  (feature-register-verify-redo (cons 'feature-run-cucumber (list cuke-opts-str)))
   (compile (concat "rake features CUCUMBER_OPTS=\"--no-color" cuke-opts-str "\""))
   (end-of-buffer-other-window 0)
   (with-current-buffer "*compilation*"
