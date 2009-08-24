@@ -15,13 +15,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
+;;
 ;; add this to your .emacs to load the mode
 ;; (add-to-list 'load-path "~/.emacs.d/elisp/feature-mode")
 ;; ;; and load it
-;; (autoload 'feature-mode "feature-mode" "Mode for editing cucumber files" t)
+;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
-
+;;
 ;; Key Bindings
 ;; ------------
 ;;
@@ -30,6 +30,10 @@
 ;;
 ;;  \C-c ,s 
 ;;  :   Verify the scenario under the point in the current buffer.
+;;
+;;  \C-c ,f 
+;;  :   Verify all features in project. (Available in feature and 
+;;      ruby files)
 ;;
 ;;  \C-c ,r 
 ;;  :   Repeat the last verification process.
@@ -76,7 +80,14 @@
   (setq feature-mode-map (make-sparse-keymap))
   (define-key feature-mode-map "\C-m" 'newline)
   (define-key feature-mode-map  (kbd "C-c ,s") 'feature-verify-scenario-at-pos)
-  (define-key feature-mode-map  (kbd "C-c ,v") 'feature-verify-all-scenarios-in-buffer))
+  (define-key feature-mode-map  (kbd "C-c ,v") 'feature-verify-all-scenarios-in-buffer)
+  (define-key feature-mode-map  (kbd "C-c ,f") 'feature-verify-all-scenarios-in-project))
+
+;; Add relevant feature keybindings to ruby modes
+(add-hook 'ruby-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c ,f") 'feature-verify-all-scenarios-in-project)))
+
 
 ;;
 ;; Syntax table
@@ -161,49 +172,42 @@ are loaded on startup.  If nil, don't load snippets.")
       (end-of-line)
       (unless (re-search-backward feature-scenario-pattern nil t)
 	(error "Unable to find an scenario"))
-      (match-string 1))))
+      (match-string-no-properties 1))))
 
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
   (interactive)
-  (feature-run-cucumber (feature-scenario-names-to-name-opts (cons (feature-scenario-name-at-pos) '()))))
+  (feature-run-cucumber 
+   (list "-n" (concat "'" (feature-escape-scenario-name (feature-scenario-name-at-pos)) "'"))
+   :feature-file (buffer-file-name)))
 
 (defun feature-verify-all-scenarios-in-buffer ()
   "Run all the scenarios defined in current buffer."
   (interactive)
-  (feature-run-cucumber (feature-scenario-names-to-name-opts (feature-scenario-names-in-buffer))))
+  (feature-run-cucumber '() :feature-file (buffer-file-name)))
+
+
+(defun feature-verify-all-scenarios-in-project ()
+  "Run all the scenarios defined in current project."
+  (interactive)
+  (feature-run-cucumber '()))
 
 (defun feature-register-verify-redo (redoer)
   "Register a bit of code that will repeat a verification process"
   (let ((redoer-cmd (eval (append '(lambda () (interactive)) (list redoer)))))
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
-(defun feature-run-cucumber (cuke-opts-str)
+(defun feature-run-cucumber (cuke-opts &optional &key feature-file)
   "Runs cucumber with the specified options"
-  (feature-register-verify-redo (cons 'feature-run-cucumber (list cuke-opts-str)))
-  (compile (concat "rake features CUCUMBER_OPTS=\"--no-color" cuke-opts-str "\""))
-  (end-of-buffer-other-window 0)
-  (with-current-buffer "*compilation*"
-    (setq default-directory (feature-project-root))))
-
-(defun feature-scenario-names-in-buffer (&optional so-far)
-  "Returns list of all scenario names found in buffer"
-  (save-excursion
-    (unless so-far 
-      (beginning-of-buffer))
-    (let ((so-far (or so-far `())))
-      (if (re-search-forward feature-scenario-pattern nil t)
-	  (feature-scenario-names-in-buffer (cons (match-string 1) so-far))
-	so-far))))
-
-
-(defun feature-scenario-names-to-name-opts (scenario-names &optional opts-str)
-  "Build a string that is a series -n options suitable to be pass to cucumber"
-  (let ((opts-str (or opts-str "")))
-    (if scenario-names
-	(concat opts-str " -n \\\"^" (feature-escape-scenario-name (car scenario-names)) "$\\\"" 
-		(feature-scenario-names-to-name-opts (cdr scenario-names)))
-      opts-str)))
+  (feature-register-verify-redo (list 'feature-run-cucumber cuke-opts :feature-file feature-file))
+  ;; redoer is registered
+  
+  (let ((opts-str    (mapconcat 'identity cuke-opts " "))
+	(feature-arg (if feature-file 
+			 (concat "FEATURE='" feature-file "'")
+		       "")))
+    (compile (concat "rake features CUCUMBER_OPTS=\"--no-color " opts-str "\" " feature-arg)))
+  (end-of-buffer-other-window 0))
 
 (defun feature-escape-scenario-name (scenario-name)
   "Escapes all the characaters in a scenario name that mess up using in the -n options"
