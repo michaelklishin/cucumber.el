@@ -194,19 +194,26 @@ are loaded on startup.  If nil, don't load snippets.")
 
 (defun feature-register-verify-redo (redoer)
   "Register a bit of code that will repeat a verification process"
-  (let ((redoer-cmd (eval (append '(lambda () (interactive)) (list redoer)))))
+  (let ((redoer-cmd (eval (list 'lambda () 
+				'(interactive)
+				(list 'let (list (list `default-directory
+						       default-directory))
+				      redoer)))))
+
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
 (defun feature-run-cucumber (cuke-opts &optional &key feature-file)
   "Runs cucumber with the specified options"
-  (feature-register-verify-redo (list 'feature-run-cucumber cuke-opts :feature-file feature-file))
+  (feature-register-verify-redo (list 'feature-run-cucumber 
+				      (list 'quote cuke-opts)
+				      :feature-file feature-file))
   ;; redoer is registered
-  
+
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
 	(feature-arg (if feature-file 
-			 (concat "FEATURE='" feature-file "'")
+			 (concat " FEATURE='" feature-file "'")
 		       "")))
-    (compile (concat "rake features CUCUMBER_OPTS=\"--no-color " opts-str "\" " feature-arg)))
+    (compile (concat "rake features CUCUMBER_OPTS=\"--no-color " opts-str "\"" feature-arg)))
   (end-of-buffer-other-window 0))
 
 (defun feature-escape-scenario-name (scenario-name)
