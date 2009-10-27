@@ -57,7 +57,7 @@
   (list
    '("^ *Feature:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-type-face t)))
    '("^ *Background:$" (0 font-lock-keyword-face))
-   '("^ *Scenario\\(?: Outline\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
+   '("^ *Scenarios?\\(?: Outline\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
    '("^ *Given" . font-lock-keyword-face)
    '("^ *When" . font-lock-keyword-face)
    '("^ *Then" . font-lock-keyword-face)
@@ -99,6 +99,17 @@
 (unless feature-mode-syntax-table
   (setq feature-mode-syntax-table (make-syntax-table)))
 
+;; Constants
+
+(defconst feature-blank-line-re "^[ \t]*$"
+  "Regexp matching a line containing only whitespace.")
+
+(defconst feature-feature-re "^ *Feature:"
+  "Regexp matching the feature statement.")
+
+(defconst feature-scenario-re "^ *Scenarios?\\(?: Outline\\)?:"
+  "Regexp matching the scenario statement.")
+
 ;;
 ;; Variables
 ;;
@@ -110,6 +121,43 @@
   "Indentation of feature statements"
   :type 'integer :group 'feature)
 
+(defcustom feature-indent-offset 2
+  "*Amount of offset per level of indentation."
+  :type 'integer :group 'feature)
+
+(defun feature-compute-indentation ()
+  "Calculate the maximum sensible indentation for the current line."
+  (save-excursion
+    (beginning-of-line)
+    (if (bobp) 10
+      (forward-line -1)
+      (while (and (looking-at feature-blank-line-re)
+                  (> (point) (point-min)))
+        (forward-line -1))
+      (+ (current-indentation)
+         (if (or (looking-at feature-feature-re)
+                 (looking-at feature-scenario-re))
+             feature-indent-offset 0)))))
+
+(defun feature-indent-line ()
+    "Indent the current line.
+The first time this command is used, the line will be indented to the
+maximum sensible indentation.  Each immediately subsequent usage will
+back-dent the line by `feature-indent-offset' spaces.  On reaching column
+0, it will cycle back to the maximum sensible indentation."
+  (interactive "*")
+  (let ((ci (current-indentation))
+        (cc (current-column))
+        (need (feature-compute-indentation)))
+    (save-excursion
+      (beginning-of-line)
+      (delete-horizontal-space)
+      (if (and (equal last-command this-command) (/= ci 0))
+          (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
+        (indent-to need)))
+      (if (< (current-column) (current-indentation))
+          (forward-to-indentation 0))))
+
 (defun feature-mode-variables ()
   (set-syntax-table feature-mode-syntax-table)
   (setq require-final-newline t)
@@ -117,6 +165,8 @@
   (setq comment-start-skip "#+ *")
   (setq comment-end "")
   (setq parse-sexp-ignore-comments t)
+  (set (make-local-variable 'indent-tabs-mode) 'nil)
+  (set (make-local-variable 'indent-line-function) 'feature-indent-line)
   (set (make-local-variable 'font-lock-defaults) '((feature-font-lock-keywords) nil nil))
   (set (make-local-variable 'font-lock-keywords) feature-font-lock-keywords))
 
