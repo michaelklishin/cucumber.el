@@ -44,8 +44,12 @@
 ;; Keywords and font locking
 ;;
 
-(defconst feature-mode-keywords
-  '("Feature" "Scenario", "Given", "Then", "When", "And"))
+;; (defconst feature-mode-keywords
+;;   '(("ru" "Функционал" "Сценарий", "Допустим", "То", "Если", "И")
+;;     ("en" "Feature" "Scenario", "Given", "Then", "When", "And")))
+
+;; (defconst feature-mode-keywords
+;;   '("Функционал" "Сценарий", "Допустим", "То", "Если", "И затем"))
 
 (cond
  ((featurep 'font-lock)
@@ -67,6 +71,41 @@
    '("^ *\\(?:More \\)?Examples:" . font-lock-keyword-face)
    '("^ *#.*" 0 font-lock-comment-face t)
    ))
+
+(defconst feature-keywords-per-language
+  '(("ru" . ((feature . "Функционал")
+             (background . "Предыстория")
+             (scenario . "Сценари\\(й\\|и\\)?\\(?: Структура сценария\\)?")
+             (given . "Допустим")
+             (when . "Если")
+             (then . "То")
+             (but . "Но")
+             (and . "И\\(?: затем\\)?")
+             (examples . "\\(?:Ещё \\)?Значеия")))
+    ("en" . ((feature . "Feature")
+             (background . "Background")
+             (scenario . "Scenarios?\\(?: Outline\\)?")
+             (given . "Given")
+             (when . "When")
+             (then . "Then")
+             (but . "But")
+             (and . "And")
+             (examples . "\\(?:More \\)?Examples")))))
+
+;; (defconst feature-font-lock-keywords
+;;   (list
+;;    '("^ *Функционал:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-type-face t)))
+;;    '("^ *Предыстория:$" (0 font-lock-keyword-face))
+;;    '("^ *Сценари\\(й\\|и\\)?\\(?: Структура сценария\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
+;;    '("^ *Допустим" . font-lock-keyword-face)
+;;    '("^ *Если" . font-lock-keyword-face)
+;;    '("^ *То" . font-lock-keyword-face)
+;;    '("^ *Но" . font-lock-keyword-face)
+;;    '("^ *И затем" . font-lock-keyword-face)
+;;    '("^ *@.*" . font-lock-preprocessor-face)
+;;    '("^ *\\(?:Ещё \\)?Значеия:" . font-lock-keyword-face)
+;;    '("^ *#.*" 0 font-lock-comment-face t)
+;;    ))
 
 
 ;;
@@ -157,6 +196,14 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
         (indent-to need)))
       (if (< (current-column) (current-indentation))
           (forward-to-indentation 0))))
+
+(defun feature-detect-language ()
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "language: \\([[:alpha:]-]+\\)"
+                       (line-end-position) 
+                       t)
+    (match-string 1)))
 
 (defun feature-mode-variables ()
   (set-syntax-table feature-mode-syntax-table)
