@@ -44,13 +44,6 @@
 ;; Keywords and font locking
 ;;
 
-;; (defconst feature-mode-keywords
-;;   '(("ru" "Функционал" "Сценарий", "Допустим", "То", "Если", "И")
-;;     ("en" "Feature" "Scenario", "Given", "Then", "When", "And")))
-
-;; (defconst feature-mode-keywords
-;;   '("Функционал" "Сценарий", "Допустим", "То", "Если", "И затем"))
-
 (cond
  ((featurep 'font-lock)
   (or (boundp 'font-lock-variable-name-face)
@@ -73,41 +66,41 @@
    ))
 
 (defconst feature-keywords-per-language
-  '(("ru" . ((feature . "Функционал")
-             (background . "Предыстория")
-             (scenario . "Сценари\\(й\\|и\\)?\\(?: Структура сценария\\)?")
-             (given . "Допустим")
-             (when . "Если")
-             (then . "То")
-             (but . "Но")
-             (and . "И\\(?: затем\\)?")
-             (examples . "\\(?:Ещё \\)?Значеия")))
-    ("en" . ((feature . "Feature")
-             (background . "Background")
-             (scenario . "Scenarios?\\(?: Outline\\)?")
-             (given . "Given")
-             (when . "When")
-             (then . "Then")
-             (but . "But")
-             (and . "And")
-             (examples . "\\(?:More \\)?Examples")))))
+  '(("ru" . ((feature    . "^ *Функционал:")
+             (background . "^ *Предыстория:")
+             (scenario 	 . "^ *Сценари\\(й\\|и\\)?\\(?: Структура сценария\\)?:")
+             (given 	 . "^ *Допустим")
+             (when 	 . "^ *Если")
+             (then 	 . "^ *То")
+             (but 	 . "^ *Но")
+             (and 	 . "^ *И\\(?: затем\\)?")
+             (examples 	 . "^ *\\(?:Ещё \\)?Значеия:")))
+    ("en" . ((feature    . "^ *Feature:")
+             (background . "^ *Background:")
+             (scenario 	 . "^ *Scenarios?\\(?: Outline\\)?:")
+             (given 	 . "^ *Given")
+             (when 	 . "^ *When")
+             (then 	 . "^ *Then")
+             (but 	 . "^ *But")
+             (and 	 . "^ *And")
+             (examples 	 . "^ *\\(?:More \\)?Examples:")))))
 
-;; (defconst feature-font-lock-keywords
-;;   (list
-;;    '("^ *Функционал:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-type-face t)))
-;;    '("^ *Предыстория:$" (0 font-lock-keyword-face))
-;;    '("^ *Сценари\\(й\\|и\\)?\\(?: Структура сценария\\)?:" (0 font-lock-keyword-face) (".*" nil nil (0 font-lock-function-name-face t)))
-;;    '("^ *Допустим" . font-lock-keyword-face)
-;;    '("^ *Если" . font-lock-keyword-face)
-;;    '("^ *То" . font-lock-keyword-face)
-;;    '("^ *Но" . font-lock-keyword-face)
-;;    '("^ *И затем" . font-lock-keyword-face)
-;;    '("^ *@.*" . font-lock-preprocessor-face)
-;;    '("^ *\\(?:Ещё \\)?Значеия:" . font-lock-keyword-face)
-;;    '("^ *#.*" 0 font-lock-comment-face t)
-;;    ))
+(defconst feature-font-lock-keywords
+  '((feature      (0 font-lock-keyword-face)
+		  (".*" nil nil (0 font-lock-type-face t)))
+    (background . (0 font-lock-keyword-face))
+    (scenario 	  (0 font-lock-keyword-face)
+		  (".*" nil nil (0 font-lock-function-name-face t)))
+    (given 	. font-lock-keyword-face)
+    (when 	. font-lock-keyword-face)
+    (then 	. font-lock-keyword-face)
+    (but 	. font-lock-keyword-face)
+    (and 	. font-lock-keyword-face)
+    (examples 	. font-lock-keyword-face)
+    ("^ *@.*"   . font-lock-preprocessor-face)
+    ("^ *#.*"     0 font-lock-comment-face t)))
 
-
+      
 ;;
 ;; Keymap
 ;;
@@ -197,13 +190,27 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
       (if (< (current-column) (current-indentation))
           (forward-to-indentation 0))))
 
+(defun feature-font-lock-keywords-for (language)
+  (let ((result-keywords . ()))
+    (dolist (pair feature-font-lock-keywords)
+      (let* ((keyword (car pair))
+	     (font-locking (cdr pair))
+	     (language-keyword (cdr (assoc keyword 
+					   (cdr (assoc
+						 language
+						 feature-keywords-per-language))))))
+
+      (push (cons (or language-keyword keyword) font-locking) result-keywords)))
+    result-keywords))
+
 (defun feature-detect-language ()
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward "language: \\([[:alpha:]-]+\\)"
-                       (line-end-position) 
-                       t)
-    (match-string 1)))
+    (if (re-search-forward "language: \\([[:alpha:]-]+\\)"
+			   (line-end-position) 
+			   t)
+	(match-string 1)
+      "en")))
 
 (defun feature-mode-variables ()
   (set-syntax-table feature-mode-syntax-table)
@@ -214,8 +221,10 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (setq parse-sexp-ignore-comments t)
   (set (make-local-variable 'indent-tabs-mode) 'nil)
   (set (make-local-variable 'indent-line-function) 'feature-indent-line)
-  (set (make-local-variable 'font-lock-defaults) '((feature-font-lock-keywords) nil nil))
-  (set (make-local-variable 'font-lock-keywords) feature-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults)
+       (list (feature-font-lock-keywords-for (feature-detect-language)) nil nil))
+  (set (make-local-variable 'font-lock-keywords)
+       (feature-font-lock-keywords-for (feature-detect-language))))
 
 (defun feature-minor-modes ()
   "Enable all minor modes for feature mode."
