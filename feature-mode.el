@@ -68,7 +68,7 @@
 (defconst feature-keywords-per-language
   '(("ru" . ((feature    . "^ *Функционал:")
              (background . "^ *Предыстория:")
-             (scenario 	 . "^ *Сценари\\(й\\|и\\)?\\(?: Структура сценария\\)?:")
+             (scenario 	 . "^ *Сценари\\(?:й\\|и\\)?\\(?: Структура сценария\\)?:")
              (given 	 . "^ *Допустим")
              (when 	 . "^ *Если")
              (then 	 . "^ *То")
@@ -136,11 +136,11 @@
 (defconst feature-blank-line-re "^[ \t]*$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst feature-feature-re "^ *Feature:"
-  "Regexp matching the feature statement.")
+(defun feature-feature-re (language)
+  (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
 
-(defconst feature-scenario-re "^ *Scenarios?\\(?: Outline\\)?:"
-  "Regexp matching the scenario statement.")
+(defun feature-scenario-re (language)
+  (cdr (assoc 'scenario (cdr (assoc language feature-keywords-per-language)))))
 
 ;;
 ;; Variables
@@ -167,8 +167,8 @@
                   (> (point) (point-min)))
         (forward-line -1))
       (+ (current-indentation)
-         (if (or (looking-at feature-feature-re)
-                 (looking-at feature-scenario-re))
+         (if (or (looking-at (feature-feature-re (feature-detect-language)))
+                 (looking-at (feature-scenario-re (feature-detect-language))))
              feature-indent-offset 0)))))
 
 (defun feature-indent-line ()
@@ -268,7 +268,8 @@ are loaded on startup.  If nil, don't load snippets.")
 ;; Verifying features
 ;;
 
-(defconst feature-scenario-pattern  "^[[:space:]]*Scenario:[[:space:]]*\\(.*\\)[[:space:]]*$")
+(defun feature-scenario-name-re (language)
+  (concat (feature-scenario-re (feature-detect-language)) "[[:space:]]+\\(.*\\)$"))
 
 (defun feature-scenario-name-at-pos (&optional pos)
   "Returns the name of the scenario at the specified position. if pos is not specified the current buffer location will be used."
@@ -276,7 +277,7 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((start (or pos (point))))
     (save-excursion
       (end-of-line)
-      (unless (re-search-backward feature-scenario-pattern nil t)
+      (unless (re-search-backward (feature-scenario-name-re (feature-detect-language)) nil t)
 	(error "Unable to find an scenario"))
       (match-string-no-properties 1))))
 
