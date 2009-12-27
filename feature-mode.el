@@ -44,9 +44,6 @@
 ;; Keywords and font locking
 ;;
 
-(defconst feature-mode-keywords
-  '("Feature" "Scenario", "Given", "Then", "When", "And"))
-
 (cond
  ((featurep 'font-lock)
   (or (boundp 'font-lock-variable-name-face)
@@ -68,7 +65,42 @@
    '("^ *#.*" 0 font-lock-comment-face t)
    ))
 
+(defconst feature-keywords-per-language
+  '(("ru" . ((feature    . "^ *Функционал:")
+             (background . "^ *Предыстория:")
+             (scenario 	 . "^ *Сценари\\(?:й\\|и\\)?\\(?: Структура сценария\\)?:")
+             (given 	 . "^ *Допустим")
+             (when 	 . "^ *Если")
+             (then 	 . "^ *То")
+             (but 	 . "^ *Но")
+             (and 	 . "^ *И\\(?: затем\\)?")
+             (examples 	 . "^ *\\(?:Ещё \\)?Значеия:")))
+    ("en" . ((feature    . "^ *Feature:")
+             (background . "^ *Background:")
+             (scenario 	 . "^ *Scenarios?\\(?: Outline\\)?:")
+             (given 	 . "^ *Given")
+             (when 	 . "^ *When")
+             (then 	 . "^ *Then")
+             (but 	 . "^ *But")
+             (and 	 . "^ *And")
+             (examples 	 . "^ *\\(?:More \\)?Examples:")))))
 
+(defconst feature-font-lock-keywords
+  '((feature      (0 font-lock-keyword-face)
+		  (".*" nil nil (0 font-lock-type-face t)))
+    (background . (0 font-lock-keyword-face))
+    (scenario 	  (0 font-lock-keyword-face)
+		  (".*" nil nil (0 font-lock-function-name-face t)))
+    (given 	. font-lock-keyword-face)
+    (when 	. font-lock-keyword-face)
+    (then 	. font-lock-keyword-face)
+    (but 	. font-lock-keyword-face)
+    (and 	. font-lock-keyword-face)
+    (examples 	. font-lock-keyword-face)
+    ("^ *@.*"   . font-lock-preprocessor-face)
+    ("^ *#.*"     0 font-lock-comment-face t)))
+
+      
 ;;
 ;; Keymap
 ;;
@@ -104,11 +136,11 @@
 (defconst feature-blank-line-re "^[ \t]*$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst feature-feature-re "^ *Feature:"
-  "Regexp matching the feature statement.")
+(defun feature-feature-re (language)
+  (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
 
-(defconst feature-scenario-re "^ *Scenarios?\\(?: Outline\\)?:"
-  "Regexp matching the scenario statement.")
+(defun feature-scenario-re (language)
+  (cdr (assoc 'scenario (cdr (assoc language feature-keywords-per-language)))))
 
 ;;
 ;; Variables
@@ -135,8 +167,8 @@
                   (> (point) (point-min)))
         (forward-line -1))
       (+ (current-indentation)
-         (if (or (looking-at feature-feature-re)
-                 (looking-at feature-scenario-re))
+         (if (or (looking-at (feature-feature-re (feature-detect-language)))
+                 (looking-at (feature-scenario-re (feature-detect-language))))
              feature-indent-offset 0)))))
 
 (defun feature-indent-line ()
@@ -158,6 +190,28 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
       (if (< (current-column) (current-indentation))
           (forward-to-indentation 0))))
 
+(defun feature-font-lock-keywords-for (language)
+  (let ((result-keywords . ()))
+    (dolist (pair feature-font-lock-keywords)
+      (let* ((keyword (car pair))
+	     (font-locking (cdr pair))
+	     (language-keyword (cdr (assoc keyword 
+					   (cdr (assoc
+						 language
+						 feature-keywords-per-language))))))
+
+      (push (cons (or language-keyword keyword) font-locking) result-keywords)))
+    result-keywords))
+
+(defun feature-detect-language ()
+  (save-excursion
+    (goto-char (point-min))
+    (if (re-search-forward "language: \\([[:alpha:]-]+\\)"
+			   (line-end-position) 
+			   t)
+	(match-string 1)
+      "en")))
+
 (defun feature-mode-variables ()
   (set-syntax-table feature-mode-syntax-table)
   (setq require-final-newline t)
@@ -167,8 +221,10 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (setq parse-sexp-ignore-comments t)
   (set (make-local-variable 'indent-tabs-mode) 'nil)
   (set (make-local-variable 'indent-line-function) 'feature-indent-line)
-  (set (make-local-variable 'font-lock-defaults) '((feature-font-lock-keywords) nil nil))
-  (set (make-local-variable 'font-lock-keywords) feature-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults)
+       (list (feature-font-lock-keywords-for (feature-detect-language)) nil nil))
+  (set (make-local-variable 'font-lock-keywords)
+       (feature-font-lock-keywords-for (feature-detect-language))))
 
 (defun feature-minor-modes ()
   "Enable all minor modes for feature mode."
@@ -212,7 +268,8 @@ are loaded on startup.  If nil, don't load snippets.")
 ;; Verifying features
 ;;
 
-(defconst feature-scenario-pattern  "^[[:space:]]*Scenario:[[:space:]]*\\(.*\\)[[:space:]]*$")
+(defun feature-scenario-name-re (language)
+  (concat (feature-scenario-re (feature-detect-language)) "[[:space:]]+\\(.*\\)$"))
 
 (defun feature-scenario-name-at-pos (&optional pos)
   "Returns the name of the scenario at the specified position. if pos is not specified the current buffer location will be used."
@@ -220,7 +277,7 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((start (or pos (point))))
     (save-excursion
       (end-of-line)
-      (unless (re-search-backward feature-scenario-pattern nil t)
+      (unless (re-search-backward (feature-scenario-name-re (feature-detect-language)) nil t)
 	(error "Unable to find an scenario"))
       (match-string-no-properties 1))))
 
@@ -263,7 +320,7 @@ are loaded on startup.  If nil, don't load snippets.")
 	(feature-arg (if feature-file 
 			 (concat " FEATURE='" feature-file "'")
 		       "")))
-    (compile (concat "rake features CUCUMBER_OPTS=\"--no-color " opts-str "\"" feature-arg)))
+    (compile (concat "rake cucumber CUCUMBER_OPTS=\"--no-color " opts-str "\"" feature-arg)))
   (end-of-buffer-other-window 0))
 
 (defun feature-escape-scenario-name (scenario-name)
