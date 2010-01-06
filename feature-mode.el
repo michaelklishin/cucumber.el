@@ -320,7 +320,8 @@ are loaded on startup.  If nil, don't load snippets.")
 	(feature-arg (if feature-file 
 			 (concat " FEATURE='" feature-file "'")
 		       "")))
-    (compile (concat "rake cucumber CUCUMBER_OPTS=\"--no-color " opts-str "\"" feature-arg)))
+    (ansi-color-for-comint-mode-on)
+    (compile (concat "rake cucumber CUCUMBER_OPTS=\"" opts-str "\"" feature-arg) t))
   (end-of-buffer-other-window 0))
 
 (defun feature-escape-scenario-name (scenario-name)
