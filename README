@@ -2,7 +2,8 @@
 
 ;; add this to your .emacs to load the mode
 ;; (add-to-list 'load-path "~/.emacs.d/elisp/feature-mode")
-;; ;; and load it
+
+;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
 
