@@ -19,7 +19,7 @@
 ;; \C-c ,r - Repeat the last verification process.
 
 
-;; Copyright (C) 2008 Michael Klishin
+;; Copyright (C) 2008 — 2010 Michael Klishin and other contributors
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
