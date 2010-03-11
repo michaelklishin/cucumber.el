@@ -65,7 +65,7 @@
              (then   . "^ *То")
              (but    . "^ *Но")
              (and    . "^ *И\\(?: затем\\)?")
-             (examples   . "^ *\\(?:Ещё \\)?Значеия:")))
+             (examples   . "^ *\\(?:Ещё \\)?Значения:")))
     ("en" . ((feature    . "^ *Feature:")
              (background . "^ *Background:")
              (scenario   . "^ *Scenarios?\\(?: Outline\\)?:")
