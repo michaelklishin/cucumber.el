@@ -24,8 +24,10 @@
 ;;
 ;; Language used in feature file is automatically detected from
 ;; "language: [2-letter ISO-code]" tag in feature file.  You can choose
-;; the language feature-mode should use in case autodetection fails.
+;; the language feature-mode should use in case autodetection fails, like this:
+;;
 ;; (defvar feature-default-language "en")
+;;
 ;;
 ;; Key Bindings
 ;; ------------
