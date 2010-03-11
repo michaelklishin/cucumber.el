@@ -21,7 +21,7 @@
 ;; ;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
-;; 
+;;
 ;; Language used in feature file is automatically detected from
 ;; "language: [2-letter ISO-code]" tag in feature file.  You can choose
 ;; the language feature-mode should use in case autodetection fails.
@@ -33,14 +33,14 @@
 ;;  \C-c ,v
 ;;  :   Verify all scenarios in the current buffer file.
 ;;
-;;  \C-c ,s 
+;;  \C-c ,s
 ;;  :   Verify the scenario under the point in the current buffer.
 ;;
-;;  \C-c ,f 
-;;  :   Verify all features in project. (Available in feature and 
+;;  \C-c ,f
+;;  :   Verify all features in project. (Available in feature and
 ;;      ruby files)
 ;;
-;;  \C-c ,r 
+;;  \C-c ,r
 ;;  :   Repeat the last verification process.
 
 (eval-when-compile (require 'cl))
@@ -59,48 +59,57 @@
 (defconst feature-keywords-per-language
   '(("ru" . ((feature    . "^ *Функционал:")
              (background . "^ *Предыстория:")
-             (scenario 	 . "^ *Сценари\\(?:й\\|и\\)?\\(?: Структура сценария\\)?:")
-             (given 	 . "^ *Допустим")
-             (when 	 . "^ *Если")
-             (then 	 . "^ *То")
-             (but 	 . "^ *Но")
-             (and 	 . "^ *И\\(?: затем\\)?")
-             (examples 	 . "^ *\\(?:Ещё \\)?Значеия:")))
+             (scenario   . "^ *Сценари\\(?:й\\|и\\)?\\(?: Структура сценария\\)?:")
+             (given    . "^ *Допустим")
+             (when   . "^ *Если")
+             (then   . "^ *То")
+             (but    . "^ *Но")
+             (and    . "^ *И\\(?: затем\\)?")
+             (examples   . "^ *\\(?:Ещё \\)?Значеия:")))
     ("en" . ((feature    . "^ *Feature:")
              (background . "^ *Background:")
-             (scenario 	 . "^ *Scenarios?\\(?: Outline\\)?:")
-             (given 	 . "^ *Given")
-             (when 	 . "^ *When")
-             (then 	 . "^ *Then")
-             (but 	 . "^ *But")
-             (and 	 . "^ *And")
-             (examples 	 . "^ *\\(?:More \\)?Examples:")))
+             (scenario   . "^ *Scenarios?\\(?: Outline\\)?:")
+             (given    . "^ *Given")
+             (when   . "^ *When")
+             (then   . "^ *Then")
+             (but    . "^ *But")
+             (and    . "^ *And")
+             (examples   . "^ *\\(?:More \\)?Examples:")))
     ("fi" . ((feature    . "^ *Ominaisuus:")
              (background . "^ *Tausta:")
-             (scenario 	 . "^ *Tapaus\\(?:aihio\\)?:")
-             (given 	 . "^ *Oletetaan")
-             (when 	 . "^ *Kun")
-             (then 	 . "^ *Niin")
-             (but 	 . "^ *Mutta")
-             (and 	 . "^ *Ja")
-             (examples 	 . "^ *Tapaukset:")))))
+             (scenario   . "^ *Tapaus\\(?:aihio\\)?:")
+             (given    . "^ *Oletetaan")
+             (when   . "^ *Kun")
+             (then   . "^ *Niin")
+             (but    . "^ *Mutta")
+             (and    . "^ *Ja")
+             (examples   . "^ *Tapaukset:"))))
+  ("it" . ((feature    . "^ *Caratteristica:")
+           (background . "^ *Sfondo:")
+           (scenario   . "^ *Scenario?\\(?: Contorno\\)?:")
+           (given    . "^ *Dato")
+           (when   . "^ *Quando")
+           (then   . "^ *Poi")
+           (but    . "^ *Ma")
+           (and    . "^ *E")
+           (examples   . "^ *\\(?:Molti \\)?esempi:"))))
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)
-		  (".*" nil nil (0 font-lock-type-face t)))
+                  (".*" nil nil (0 font-lock-type-face t)))
     (background . (0 font-lock-keyword-face))
-    (scenario 	  (0 font-lock-keyword-face)
-		  (".*" nil nil (0 font-lock-function-name-face t)))
-    (given 	. font-lock-keyword-face)
-    (when 	. font-lock-keyword-face)
-    (then 	. font-lock-keyword-face)
-    (but 	. font-lock-keyword-face)
-    (and 	. font-lock-keyword-face)
-    (examples 	. font-lock-keyword-face)
+    (scenario     (0 font-lock-keyword-face)
+                  (".*" nil nil (0 font-lock-function-name-face t)))
+    (given  . font-lock-keyword-face)
+    (when   . font-lock-keyword-face)
+    (then   . font-lock-keyword-face)
+    (but  . font-lock-keyword-face)
+    (and  . font-lock-keyword-face)
+    (examples   . font-lock-keyword-face)
     ("^ *@.*"   . font-lock-preprocessor-face)
     ("^ *#.*"     0 font-lock-comment-face t)))
 
-      
+
 ;;
 ;; Keymap
 ;;
@@ -172,7 +181,7 @@
              feature-indent-offset 0)))))
 
 (defun feature-indent-line ()
-    "Indent the current line.
+  "Indent the current line.
 The first time this command is used, the line will be indented to the
 maximum sensible indentation.  Each immediately subsequent usage will
 back-dent the line by `feature-indent-offset' spaces.  On reaching column
@@ -187,29 +196,29 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
       (if (and (equal last-command this-command) (/= ci 0))
           (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
         (indent-to need)))
-      (if (< (current-column) (current-indentation))
-          (forward-to-indentation 0))))
+    (if (< (current-column) (current-indentation))
+        (forward-to-indentation 0))))
 
 (defun feature-font-lock-keywords-for (language)
   (let ((result-keywords . ()))
     (dolist (pair feature-font-lock-keywords)
       (let* ((keyword (car pair))
-	     (font-locking (cdr pair))
-	     (language-keyword (cdr (assoc keyword 
-					   (cdr (assoc
-						 language
-						 feature-keywords-per-language))))))
+             (font-locking (cdr pair))
+             (language-keyword (cdr (assoc keyword
+                                           (cdr (assoc
+                                                 language
+                                                 feature-keywords-per-language))))))
 
-      (push (cons (or language-keyword keyword) font-locking) result-keywords)))
+        (push (cons (or language-keyword keyword) font-locking) result-keywords)))
     result-keywords))
 
 (defun feature-detect-language ()
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "language: \\([[:alpha:]-]+\\)"
-			   (line-end-position) 
-			   t)
-	(match-string 1)
+                           (line-end-position)
+                           t)
+        (match-string 1)
       feature-default-language)))
 
 (defun feature-mode-variables ()
@@ -278,13 +287,13 @@ are loaded on startup.  If nil, don't load snippets.")
     (save-excursion
       (end-of-line)
       (unless (re-search-backward (feature-scenario-name-re (feature-detect-language)) nil t)
-	(error "Unable to find an scenario"))
+        (error "Unable to find an scenario"))
       (match-string-no-properties 1))))
 
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
   (interactive)
-  (feature-run-cucumber 
+  (feature-run-cucumber
    (list "-n" (concat "'" (feature-escape-scenario-name (feature-scenario-name-at-pos)) "'"))
    :feature-file (buffer-file-name)))
 
@@ -301,25 +310,25 @@ are loaded on startup.  If nil, don't load snippets.")
 
 (defun feature-register-verify-redo (redoer)
   "Register a bit of code that will repeat a verification process"
-  (let ((redoer-cmd (eval (list 'lambda () 
-				'(interactive)
-				(list 'let (list (list `default-directory
-						       default-directory))
-				      redoer)))))
+  (let ((redoer-cmd (eval (list 'lambda ()
+                                '(interactive)
+                                (list 'let (list (list `default-directory
+                                                       default-directory))
+                                      redoer)))))
 
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
 (defun feature-run-cucumber (cuke-opts &optional &key feature-file)
   "Runs cucumber with the specified options"
-  (feature-register-verify-redo (list 'feature-run-cucumber 
-				      (list 'quote cuke-opts)
-				      :feature-file feature-file))
+  (feature-register-verify-redo (list 'feature-run-cucumber
+                                      (list 'quote cuke-opts)
+                                      :feature-file feature-file))
   ;; redoer is registered
 
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
-	(feature-arg (if feature-file 
-			 (concat " FEATURE='" feature-file "'")
-		       "")))
+        (feature-arg (if feature-file
+                         (concat " FEATURE='" feature-file "'")
+                       "")))
     (ansi-color-for-comint-mode-on)
     (compile (concat "rake cucumber CUCUMBER_OPTS=\"" opts-str "\"" feature-arg) t))
   (end-of-buffer-other-window 0))
@@ -336,8 +345,8 @@ are loaded on startup.  If nil, don't load snippets.")
   "Finds the root directory of the project by walking the directory tree until it finds a rake file."
   (let ((directory (file-name-as-directory (or directory default-directory))))
     (if (feature-root-directory-p directory) (error "No rakefle found"))
-    (if (file-exists-p (concat directory "Rakefile")) 
-	directory
+    (if (file-exists-p (concat directory "Rakefile"))
+        directory
       (feature-project-root (file-name-directory (directory-file-name directory))))))
 
 
