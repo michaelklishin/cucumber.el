@@ -68,7 +68,16 @@
              (then 	 . "^ *Then")
              (but 	 . "^ *But")
              (and 	 . "^ *And")
-             (examples 	 . "^ *\\(?:More \\)?Examples:")))))
+             (examples 	 . "^ *\\(?:More \\)?Examples:")))
+    ("fi" . ((feature    . "^ *Ominaisuus:")
+             (background . "^ *Tausta:")
+             (scenario 	 . "^ *Tapaus\\(?:aihio\\)?:")
+             (given 	 . "^ *Oletetaan")
+             (when 	 . "^ *Kun")
+             (then 	 . "^ *Niin")
+             (but 	 . "^ *Mutta")
+             (and 	 . "^ *Ja")
+             (examples 	 . "^ *Tapaukset:")))))
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)
