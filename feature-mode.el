@@ -21,6 +21,11 @@
 ;; ;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
+;; 
+;; Language used in feature file is automatically detected from
+;; "language: [2-letter ISO-code]" tag in feature file.  You can choose
+;; the language feature-mode should use in case autodetection fails.
+;; (defvar feature-default-language "en")
 ;;
 ;; Key Bindings
 ;; ------------
@@ -50,6 +55,7 @@
       (setq font-lock-variable-name-face font-lock-type-face)))
  (set (make-local-variable 'font-lock-syntax-table) feature-font-lock-syntax-table))
 
+(defvar feature-default-language "en")
 (defconst feature-keywords-per-language
   '(("ru" . ((feature    . "^ *Функционал:")
              (background . "^ *Предыстория:")
@@ -204,7 +210,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
 			   (line-end-position) 
 			   t)
 	(match-string 1)
-      "en")))
+      feature-default-language)))
 
 (defun feature-mode-variables ()
   (set-syntax-table feature-mode-syntax-table)
