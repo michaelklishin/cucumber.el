@@ -1,6 +1,6 @@
 ;; cucumber.el -- Emacs mode for editing plain text user stories
 ;;
-;; Copyright (C) 2008 Michael Klishin
+;; Copyright (C) 2008-2010 Michael Klishin and other contributors
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -344,7 +344,7 @@ are loaded on startup.  If nil, don't load snippets.")
   (equal a-directory (rspec-parent-directory a-directory)))
 
 (defun feature-project-root (&optional directory)
-  "Finds the root directory of the project by walking the directory tree until it finds a rake file."
+  "Finds the root directory of the project by walking the directory tree until it finds Rakefile (presumably, application root)"
   (let ((directory (file-name-as-directory (or directory default-directory))))
     (if (feature-root-directory-p directory) (error "No rakefle found"))
     (if (file-exists-p (concat directory "Rakefile"))
