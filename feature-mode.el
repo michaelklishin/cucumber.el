@@ -84,7 +84,7 @@
              (when   . "^ *Quando")
              (then   . "^ *Então")
              (but    . "^ *Mas")
-             (and    . "^ *E")
+             (and    . "^ *E ")
              (examples   . "^ *\\(?:Mais \\)?Exemplos:")))
     ("fi" . ((feature    . "^ *Ominaisuus:")
              (background . "^ *Tausta:")
