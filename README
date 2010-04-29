@@ -33,9 +33,9 @@
 ;; Supported languages
 ;; -------------------
 ;;
-;; At the moment, Cucumber.el supports English, Russian and Finnish.
-;; Translations to other languages are very welcome: fork, add your translation
-;; to language list and send michaelklishin a pull request @ Github.
+;; At the moment, Cucumber.el supports whatever your Cucumber
+;; supports.  Just configure it to load i18n.yml from your Gherkin gem
+;; sources.
 ;;
 
 ;; Copyright (C) 2008 — 2010 Michael Klishin and other contributors
