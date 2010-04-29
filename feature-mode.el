@@ -1,6 +1,6 @@
 ;; cucumber.el -- Emacs mode for editing plain text user stories
 ;;
-;; Copyright (C) 2008-2010 Michael Klishin and other contributors
+;; Copyright (C) 2008 — 2010 Michael Klishin and other contributors
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -16,18 +16,33 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;
-;; add this to your .emacs to load the mode
+;; Copy files to ~/.emacs.d/elisp/feature-mode and add this to your
+;; .emacs to load the mode
 ;; (add-to-list 'load-path "~/.emacs.d/elisp/feature-mode")
+;; ;; optional configurations
+;; ;; default language if .feature doesn't have "# language: fi"
+;; ;(setq feature-default-language "fi")
+;; ;; point to cucumber languages.yml or gherkin i18n.yml to use
+;; ;; exactly the same localization your cucumber uses
+;; ;(setq feature-default-i18n-file "/path/to/gherkin/gem/i18n.yml")
 ;; ;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
-;;
+;; 
 ;; Language used in feature file is automatically detected from
-;; "language: [2-letter ISO-code]" tag in feature file.  You can choose
-;; the language feature-mode should use in case autodetection fails, like this:
+;; "language: [2-letter ISO-code]" tag in feature file.  You can
+;; choose the language feature-mode should use in case autodetection
+;; fails.  Just add
+;; (setq feature-default-language "en")
+;; to your .emacs
 ;;
-;; (defvar feature-default-language "en")
-;;
+;; Translations are loaded from ~/.emacs.d/elisp/feature-mode/i18n.yml
+;; by default.  You can configure feature-mode to load translations
+;; directly from cucumber languages.yml or gherkin i18n.yml.  Just add
+;; (setq feature-default-i18n-file 
+;;  "/usr/lib/ruby/gems/1.8/gems/cucumber-0.4.4/lib/cucumber/languages.yml")
+;; to your .emacs before
+;; (require 'feature-mode)
 ;;
 ;; Key Bindings
 ;; ------------
@@ -57,62 +72,85 @@
       (setq font-lock-variable-name-face font-lock-type-face)))
  (set (make-local-variable 'font-lock-syntax-table) feature-font-lock-syntax-table))
 
+(defun load-gherkin-i10n (filename)
+  "Read and parse Gherkin l10n from given file."
+  (interactive "Load l10n file: ")
+  (with-temp-buffer 
+    (insert-file-contents filename)
+    (parse-gherkin-l10n)))
+
+(defun parse-gherkin-l10n ()
+  (let (languages-alist)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (if (try-find-next-language)
+            (let ((lang-beg (+ (point) 1))
+                  (lang-end (progn (end-of-line) (- (point) 2)))
+                  (kwds-beg (+ (point) 1))
+                  (kwds-end (progn (try-find-next-language) (point))))
+              (add-to-list
+               'languages-alist 
+               (cons 
+                (filter-buffer-substring lang-beg lang-end) 
+                (parse-gherkin-l10n-translations kwds-beg kwds-end)))))))
+    (nreverse languages-alist)))
+
+(defun try-find-next (regexp)
+  (let (search-result)
+    (setq search-result (search-forward-regexp regexp nil t))
+    (if search-result
+        (beginning-of-line)
+      (goto-char (point-max)))
+    search-result))
+
+(defun try-find-next-language ()
+  (try-find-next "^\"[^\"]+\":"))
+
+(defun try-find-next-translation ()
+  (try-find-next "^  \\([^ :]+\\): +\"?\\*?|?\\([^\"\n]+\\)\"?"))
+
+(defun parse-gherkin-l10n-translations (beg end)
+  (let (translations-alist)
+    (save-excursion
+      (save-restriction
+        (narrow-to-region beg end)
+        (goto-char (point-min))
+        (while (not (eobp))
+          (if (try-find-next-translation)
+              (let ((kwname (match-string-no-properties 1))
+                    (kw     (match-string-no-properties 2)))
+                (add-to-list 
+                 'translations-alist
+                 (cons 
+                  (intern kwname)
+                  (if (or (equal kwname "name")
+                          (equal kwname "native"))
+                      kw
+                    (build-keyword-matcher kw))))))
+          (end-of-line))))
+    (nreverse translations-alist)))
+
+(defun build-keyword-matcher (keyword)
+  (concat "^[ \t]*\\(" (replace-regexp-in-string "|" "\\\\|" keyword) "\\):?"))
+
 (defvar feature-default-language "en")
+(defvar feature-default-i18n-file "~/.emacs.d/elisp/feature-mode/i18n.yml")
+
 (defconst feature-keywords-per-language
-  '(("ru" . ((feature    . "^ *Функционал:")
-             (background . "^ *Предыстория:")
-             (scenario   . "^ *Сценари\\(?:й\\|и\\)?\\(?: Структура сценария\\)?:")
-             (given    . "^ *Допустим")
-             (when   . "^ *Если")
-             (then   . "^ *То")
-             (but    . "^ *Но")
-             (and    . "^ *И\\(?: затем\\)?")
-             (examples   . "^ *\\(?:Ещё \\)?Значения:")))
-    ("en" . ((feature    . "^ *Feature:")
+  (if (file-readable-p feature-default-i18n-file)
+      (load-gherkin-i10n feature-default-i18n-file)
+  '(("en" . ((feature    . "^ *Feature:")
              (background . "^ *Background:")
-             (scenario   . "^ *Scenarios?\\(?: Outline\\)?:")
-             (given    . "^ *Given")
-             (when   . "^ *When")
-             (then   . "^ *Then")
-             (but    . "^ *But")
-             (and    . "^ *And")
-             (examples   . "^ *\\(?:More \\)?Examples:")))
-    ("pt" . ((feature    . "^ *Funcionalidade:")
-             (background . "^ *Contexto:")
-             (scenario   . "^ *Cenário?\\(?: Esquema do Cenário\\)?:")
-             (given    . "^ *Dado")
-             (when   . "^ *Quando")
-             (then   . "^ *Então")
-             (but    . "^ *Mas")
-             (and    . "^ *E ")
-             (examples   . "^ *\\(?:Mais \\)?Exemplos:")))
-    ("fi" . ((feature    . "^ *Ominaisuus:")
-             (background . "^ *Tausta:")
-             (scenario   . "^ *Tapaus\\(?:aihio\\)?:")
-             (given    . "^ *Oletetaan")
-             (when   . "^ *Kun")
-             (then   . "^ *Niin")
-             (but    . "^ *Mutta")
-             (and    . "^ *Ja")
-             (examples   . "^ *Tapaukset:")))
-    ("it" . ((feature    . "^ *Funzionalità:")
-	     (background . "^ *Contesto:")
-	     (scenario   . "^ *Scenario?\\(?: Schema dello scenario\\)?:")
-	     (given    . "^ *Dato")
-	     (when   . "^ *Quando")
-	     (then   . "^ *Allora")
-	     (but    . "^ *Ma")
-	     (and    . "^ *E")
-	     (examples   . "^ *\\(?:Molti \\)?esempi:")))
-    ("ja" . ((feature    . "^ *フィーチャ:")
-	     (background . "^ *背景:")
-	     (scenario   . "^ *シナリオ:")
-	     (given    . "^ *前提")
-	     (when   . "^ *もし")
-	     (then   . "^ *ならば")
-	     (but    . "^ *しかし")
-	     (and    . "^ *かつ")
-	     (examples   . "^ *例:")))))
+             (scenario   . "^ *Scenario:")
+             (scenario_outline . 
+                           "^ *Scenario Outline:")
+             (given      . "^ *Given")
+             (when       . "^ *When")
+             (then       . "^ *Then")
+             (but        . "^ *But")
+             (and        . "^ *And")
+             (examples   . "^ *\\(Examples\\|Scenarios\\):?"))))))
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)
@@ -120,11 +158,14 @@
     (background . (0 font-lock-keyword-face))
     (scenario     (0 font-lock-keyword-face)
                   (".*" nil nil (0 font-lock-function-name-face t)))
-    (given  . font-lock-keyword-face)
-    (when   . font-lock-keyword-face)
-    (then   . font-lock-keyword-face)
-    (but  . font-lock-keyword-face)
-    (and  . font-lock-keyword-face)
+    (scenario_outline
+                  (0 font-lock-keyword-face)
+                  (".*" nil nil (0 font-lock-function-name-face t)))
+    (given      . font-lock-keyword-face)
+    (when       . font-lock-keyword-face)
+    (then       . font-lock-keyword-face)
+    (but        . font-lock-keyword-face)
+    (and        . font-lock-keyword-face)
     (examples   . font-lock-keyword-face)
     ("^ *@.*"   . font-lock-preprocessor-face)
     ("^ *#.*"     0 font-lock-comment-face t)))
