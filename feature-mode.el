@@ -409,9 +409,10 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
         (feature-arg (if feature-file
                          (concat " FEATURE='" feature-file "'")
-                       "")))
+                         "")))
     (ansi-color-for-comint-mode-on)
-    (compile (concat "rake cucumber CUCUMBER_OPTS=\"" opts-str "\"" feature-arg) t))
+    (let ((default-directory (feature-project-root)))
+      (compile (concat "rake cucumber CUCUMBER_OPTS=\"" opts-str "\"" feature-arg) t)))
   (end-of-buffer-other-window 0))
 
 (defun feature-escape-scenario-name (scenario-name)
