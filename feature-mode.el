@@ -44,6 +44,16 @@
 ;; to your .emacs before
 ;; (require 'feature-mode)
 ;;
+;;
+;; In order to get goto-step-definition to work, you must install the
+;; ruby_parser gem (version 2.0.x). For example:
+;;
+;;    gem install ruby_parser --version=2.0.5
+;;
+;; (be sure and use the ruby-interpreter that emacs will use based on
+;; `exec-path')
+;;
+;;
 ;; Key Bindings
 ;; ------------
 ;;
@@ -59,9 +69,12 @@
 ;;
 ;;  \C-c ,r
 ;;  :   Repeat the last verification process.
+;;
+;;  \C-c ,g
+;;  :   Go to step-definition under point
 
 (eval-when-compile (require 'cl))
-
+(require 'thingatpt)
 ;;
 ;; Keywords and font locking
 ;;
@@ -183,7 +196,8 @@
   (define-key feature-mode-map "\C-m" 'newline)
   (define-key feature-mode-map  (kbd "C-c ,s") 'feature-verify-scenario-at-pos)
   (define-key feature-mode-map  (kbd "C-c ,v") 'feature-verify-all-scenarios-in-buffer)
-  (define-key feature-mode-map  (kbd "C-c ,f") 'feature-verify-all-scenarios-in-project))
+  (define-key feature-mode-map  (kbd "C-c ,f") 'feature-verify-all-scenarios-in-project)
+  (define-key feature-mode-map  (kbd "C-c ,g") 'feature-goto-step-definition))
 
 ;; Add relevant feature keybindings to ruby modes
 (add-hook 'ruby-mode-hook
@@ -328,6 +342,12 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
 If the yasnippet library is loaded, snippets in this directory
 are loaded on startup.  If nil, don't load snippets.")
 
+(defvar feature-support-directory (concat (file-name-directory load-file-name) "support")
+  "Path to support folder
+
+   The support folder contains a ruby script that takes a step as an
+   argument, and outputs a list of all matching step definitions")
+
 (when (and (featurep 'yasnippet)
            feature-snippet-directory
            (file-exists-p feature-snippet-directory))
@@ -410,7 +430,26 @@ are loaded on startup.  If nil, don't load snippets.")
         directory
       (feature-project-root (file-name-directory (directory-file-name directory))))))
 
-
+(defun feature-goto-step-definition ()
+  "Goto the step-definition under (point).  Requires ruby"
+  (interactive)
+  (let* ((root (feature-project-root))
+         (input (thing-at-point 'line))
+         (_ (set-text-properties 0 (length input) nil input))
+         (result (shell-command-to-string (format "cd %S && ruby %S/go_to_step.rb %S"
+                                                  root
+                                                  feature-support-directory
+                                                  input)))
+         (file-and-line (car (split-string result "\n")))
+         (matched? (string-match "^\\(.+\\):\\([0-9]+\\)$" file-and-line)))
+    (if matched?
+        (let ((file                   (format "%s/%s" root (match-string 1 file-and-line)))
+              (line-no (string-to-int (match-string 2 file-and-line))))
+          (find-file file)
+          (goto-line line-no))
+      (if (equal "" result)
+          (message "No matching steps found for:\n%s" input)
+        (message "An error occurred:\n%s" result)))))
 
 (provide 'cucumber-mode)
 (provide 'feature-mode)
