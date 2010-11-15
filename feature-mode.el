@@ -443,7 +443,7 @@ are loaded on startup.  If nil, don't load snippets.")
       (feature-project-root (file-name-directory (directory-file-name directory))))))
 
 (defun feature-goto-step-definition ()
-  "Goto the step-definition under (point).  Requires ruby"
+  "Goto the step-definition under (point).  Requires ruby."
   (interactive)
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
