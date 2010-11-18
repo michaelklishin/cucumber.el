@@ -75,15 +75,14 @@
 
 (eval-when-compile (require 'cl))
 (require 'thingatpt)
+
 ;;
 ;; Keywords and font locking
 ;;
 
-(cond
- ((featurep 'font-lock)
+(when (featurep 'font-lock)
   (or (boundp 'font-lock-variable-name-face)
       (setq font-lock-variable-name-face font-lock-type-face)))
- (set (make-local-variable 'font-lock-syntax-table) feature-font-lock-syntax-table))
 
 (defun load-gherkin-i10n (filename)
   "Read and parse Gherkin l10n from given file."
@@ -348,6 +347,7 @@ are loaded on startup.  If nil, don't load snippets.")
    The support folder contains a ruby script that takes a step as an
    argument, and outputs a list of all matching step definitions")
 
+(declare-function yas/load-directory "yasnippet" t)
 (when (and (featurep 'yasnippet)
            feature-snippet-directory
            (file-exists-p feature-snippet-directory))
@@ -419,6 +419,7 @@ are loaded on startup.  If nil, don't load snippets.")
   "Escapes all the characaters in a scenario name that mess up using in the -n options"
   (replace-regexp-in-string "\\(\"\\)" "\\\\\\\\\\\\\\1" (replace-regexp-in-string "\\([()\']\\|\\[\\|\\]\\)" "\\\\\\1" scenario-name)))
 
+(declare-function rspec-parent-directory "rspec" t)
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
   (equal a-directory (rspec-parent-directory a-directory)))
@@ -445,9 +446,10 @@ are loaded on startup.  If nil, don't load snippets.")
          (matched? (string-match "^\\(.+\\):\\([0-9]+\\)$" file-and-line)))
     (if matched?
         (let ((file                   (format "%s/%s" root (match-string 1 file-and-line)))
-              (line-no (string-to-int (match-string 2 file-and-line))))
+              (line-no (string-to-number (match-string 2 file-and-line))))
           (find-file file)
-          (goto-line line-no))
+          (goto-char (point-min))
+          (forward-line (1- line-no)))
       (if (equal "" result)
           (message "No matching steps found for:\n%s" input)
         (message "An error occurred:\n%s" result)))))
