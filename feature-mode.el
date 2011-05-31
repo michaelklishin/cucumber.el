@@ -419,10 +419,9 @@ are loaded on startup.  If nil, don't load snippets.")
   "Escapes all the characaters in a scenario name that mess up using in the -n options"
   (replace-regexp-in-string "\\(\"\\)" "\\\\\\\\\\\\\\1" (replace-regexp-in-string "\\([()\']\\|\\[\\|\\]\\)" "\\\\\\1" scenario-name)))
 
-(declare-function rspec-parent-directory "rspec" t)
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
-  (equal a-directory (rspec-parent-directory a-directory)))
+  (equal a-directory (file-name-directory (directory-file-name a-directory))))
 
 (defun feature-project-root (&optional directory)
   "Finds the root directory of the project by walking the directory tree until it finds Rakefile (presumably, application root)"
