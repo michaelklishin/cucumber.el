@@ -225,6 +225,9 @@
 (defun feature-scenario-re (language)
   (cdr (assoc 'scenario (cdr (assoc language feature-keywords-per-language)))))
 
+(defun feature-background-re (language)
+  (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
+
 ;;
 ;; Variables
 ;;
@@ -251,7 +254,8 @@
         (forward-line -1))
       (+ (current-indentation)
          (if (or (looking-at (feature-feature-re (feature-detect-language)))
-                 (looking-at (feature-scenario-re (feature-detect-language))))
+                 (looking-at (feature-scenario-re (feature-detect-language)))
+                 (looking-at (feature-background-re (feature-detect-language))))
              feature-indent-offset 0)))))
 
 (defun feature-indent-line ()
