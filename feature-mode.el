@@ -1,6 +1,6 @@
 ;; cucumber.el -- Emacs mode for editing plain text user stories
 ;;
-;; Copyright (C) 2008 — 2010 Michael Klishin and other contributors
+;; Copyright (C) 2008 — 2011 Michael Klishin and other contributors
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -14,7 +14,7 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110.
 ;;
 ;; Copy files to ~/.emacs.d/elisp/feature-mode and add this to your
 ;; .emacs to load the mode
