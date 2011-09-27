@@ -1,7 +1,7 @@
 ;; cucumber.el -- Emacs mode for editing plain text user stories
 
-;; Copy files to ~/.emacs.d/elisp/feature-mode and add this to your
-;; .emacs to load the mode
+;; Copy files to ~/.emacs.d/elisp/feature-mode, for example,
+;; and add this to your .emacs to load the mode
 ;; (add-to-list 'load-path "~/.emacs.d/elisp/feature-mode")
 ;; ;; optional configurations
 ;; ;; default language if .feature doesn't have "# language: fi"
