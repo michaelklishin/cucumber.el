@@ -1,7 +1,7 @@
 ;; cucumber.el -- Emacs mode for editing plain text user stories
 
-;; Copy files to ~/.emacs.d/elisp/feature-mode and add this to your
-;; .emacs to load the mode
+;; Copy files to ~/.emacs.d/elisp/feature-mode, for example,
+;; and add this to your .emacs to load the mode
 ;; (add-to-list 'load-path "~/.emacs.d/elisp/feature-mode")
 ;; ;; optional configurations
 ;; ;; default language if .feature doesn't have "# language: fi"
@@ -19,15 +19,19 @@
 ;;  \C-c ,v
 ;;  :   Verify all scenarios in the current buffer file.
 ;;
-;;  \C-c ,s 
+;;  \C-c ,s
 ;;  :   Verify the scenario under the point in the current buffer.
 ;;
-;;  \C-c ,f 
-;;  :   Verify all features in project. (Available in feature and 
+;;  \C-c ,f
+;;  :   Verify all features in project. (Available in feature and
 ;;      ruby files)
 ;;
-;;  \C-c ,r 
+;;  \C-c ,r
 ;;  :   Repeat the last verification process.
+;;
+;;  \C-c ,g
+;;  :   Go to step-definition under point
+;;  :   (requires ruby_parser gem >= 2.0.5)
 
 ;;
 ;; Supported languages

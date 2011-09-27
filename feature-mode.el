@@ -28,7 +28,7 @@
 ;; ;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
-;; 
+;;
 ;; Language used in feature file is automatically detected from
 ;; "language: [2-letter ISO-code]" tag in feature file.  You can
 ;; choose the language feature-mode should use in case autodetection
@@ -39,7 +39,7 @@
 ;; Translations are loaded from ~/.emacs.d/elisp/feature-mode/i18n.yml
 ;; by default.  You can configure feature-mode to load translations
 ;; directly from cucumber languages.yml or gherkin i18n.yml.  Just add
-;; (setq feature-default-i18n-file 
+;; (setq feature-default-i18n-file
 ;;  "/usr/lib/ruby/gems/1.8/gems/cucumber-0.4.4/lib/cucumber/languages.yml")
 ;; to your .emacs before
 ;; (require 'feature-mode)
@@ -87,7 +87,7 @@
 (defun load-gherkin-i10n (filename)
   "Read and parse Gherkin l10n from given file."
   (interactive "Load l10n file: ")
-  (with-temp-buffer 
+  (with-temp-buffer
     (insert-file-contents filename)
     (parse-gherkin-l10n)))
 
@@ -102,9 +102,9 @@
                   (kwds-beg (+ (point) 1))
                   (kwds-end (progn (try-find-next-language) (point))))
               (add-to-list
-               'languages-alist 
-               (cons 
-                (filter-buffer-substring lang-beg lang-end) 
+               'languages-alist
+               (cons
+                (filter-buffer-substring lang-beg lang-end)
                 (parse-gherkin-l10n-translations kwds-beg kwds-end)))))))
     (nreverse languages-alist)))
 
@@ -132,9 +132,9 @@
           (if (try-find-next-translation)
               (let ((kwname (match-string-no-properties 1))
                     (kw     (match-string-no-properties 2)))
-                (add-to-list 
+                (add-to-list
                  'translations-alist
-                 (cons 
+                 (cons
                   (intern kwname)
                   (if (or (equal kwname "name")
                           (equal kwname "native"))
@@ -147,7 +147,7 @@
   (concat "^[ \t]*\\(" (replace-regexp-in-string "|" "\\\\|" keyword) "\\):?"))
 
 (defvar feature-default-language "en")
-(defvar feature-default-i18n-file "~/.emacs.d/elisp/feature-mode/i18n.yml")
+(defvar feature-default-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/i18n.yml")))
 
 (defconst feature-keywords-per-language
   (if (file-readable-p feature-default-i18n-file)
@@ -155,7 +155,7 @@
   '(("en" . ((feature    . "^ *Feature:")
              (background . "^ *Background:")
              (scenario   . "^ *Scenario:")
-             (scenario_outline . 
+             (scenario_outline .
                            "^ *Scenario Outline:")
              (given      . "^ *Given")
              (when       . "^ *When")
