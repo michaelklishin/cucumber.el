@@ -76,6 +76,11 @@
 (eval-when-compile (require 'cl))
 (require 'thingatpt)
 
+(defcustom feature-cucumber-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
+  "set this variable to the command, which should be used to execute cucumber scenarios."
+  :group 'feature-mode
+  :type 'string)
+
 ;;
 ;; Keywords and font locking
 ;;
@@ -147,6 +152,7 @@
   (concat "^[ \t]*\\(" (replace-regexp-in-string "|" "\\\\|" keyword) "\\):?"))
 
 (defvar feature-default-language "en")
+(defvar feature-default-directory "features")
 (defvar feature-default-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/i18n.yml")))
 
 (defconst feature-keywords-per-language
@@ -412,11 +418,12 @@ are loaded on startup.  If nil, don't load snippets.")
 
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
         (feature-arg (if feature-file
-                         (concat " FEATURE='" feature-file "'")
-                         "")))
+                         feature-file
+                       feature-default-directory)))
     (ansi-color-for-comint-mode-on)
     (let ((default-directory (feature-project-root)))
-      (compile (concat "rake cucumber CUCUMBER_OPTS=\"" opts-str "\"" feature-arg) t)))
+      (compile (concat (replace-regexp-in-string "\{options\}" opts-str
+                        (replace-regexp-in-string "\{feature\}" feature-arg feature-cucumber-command))) t)))
   (end-of-buffer-other-window 0))
 
 (defun feature-escape-scenario-name (scenario-name)
