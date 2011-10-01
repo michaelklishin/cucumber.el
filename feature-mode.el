@@ -448,7 +448,7 @@ are loaded on startup.  If nil, don't load snippets.")
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
          (_ (set-text-properties 0 (length input) nil input))
-         (result (shell-command-to-string (format "cd %S && ruby %S/go_to_step.rb %S"
+         (result (shell-command-to-string (format "cd %S && ruby %S/find_step.rb %S"
                                                   root
                                                   feature-support-directory
                                                   input)))
