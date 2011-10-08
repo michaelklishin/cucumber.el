@@ -158,16 +158,16 @@
 (defconst feature-keywords-per-language
   (if (file-readable-p feature-default-i18n-file)
       (load-gherkin-i10n feature-default-i18n-file)
-  '(("en" . ((feature    . "^ *Feature:")
-             (background . "^ *Background:")
-             (scenario   . "^ *Scenario:")
+  '(("en" . ((feature    . "^ *\\(Feature\\):?")
+             (background . "^ *\\(Background\\):?")
+             (scenario   . "^ *\\(Scenario\\):?")
              (scenario_outline .
-                           "^ *Scenario Outline:")
-             (given      . "^ *Given")
-             (when       . "^ *When")
-             (then       . "^ *Then")
-             (but        . "^ *But")
-             (and        . "^ *And")
+                           "^ *\\(Scenario Outline\\):?")
+             (given      . "^ *\\(Given\\)")
+             (when       . "^ *\\(When\\)")
+             (then       . "^ *\\(Then\\)")
+             (but        . "^ *\\(But\\)")
+             (and        . "^ *\\(And\\)")
              (examples   . "^ *\\(Examples\\|Scenarios\\):?"))))))
 
 (defconst feature-font-lock-keywords
@@ -379,7 +379,7 @@ are loaded on startup.  If nil, don't load snippets.")
       (end-of-line)
       (unless (re-search-backward (feature-scenario-name-re (feature-detect-language)) nil t)
         (error "Unable to find an scenario"))
-      (match-string-no-properties 1))))
+      (match-string-no-properties 2))))
 
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
