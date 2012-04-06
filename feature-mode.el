@@ -343,6 +343,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (feature-minor-modes)
   (run-mode-hooks 'feature-mode-hook))
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
 ;;
