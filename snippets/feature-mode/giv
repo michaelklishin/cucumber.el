@@ -1,3 +1,4 @@
+#key: giv
 #name: Given a known starting condition
 # --
 Given ${1:a known starting condition}

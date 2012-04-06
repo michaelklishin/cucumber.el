@@ -1,3 +1,4 @@
+#key: sce
 #name: Scenario: Name
 # --
 Scenario: ${1:Name}
