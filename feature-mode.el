@@ -1,5 +1,5 @@
 ;;; feature-mode.el --- Major mode for editing Gherkin (i.e. Cucumber) user stories
-;;; Version: 0.2
+;;; Version: 0.3
 ;;; Author: Michael Klishin
 ;;; URL: https://github.com/michaelklishin/cucumber.el
 ;;; Uploader: Kao Félix
