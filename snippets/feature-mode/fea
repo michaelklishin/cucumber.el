@@ -1,3 +1,4 @@
+#key: fea
 #name: Feature: Name
 # --
 Feature: ${1:Name}

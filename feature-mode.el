@@ -1,6 +1,10 @@
-;; cucumber.el -- Emacs mode for editing plain text user stories
-;;
-;; Copyright (C) 2008 — 2011 Michael Klishin and other contributors
+;;; feature-mode.el --- Major mode for editing Gherkin (i.e. Cucumber) user stories
+;;; Version: 0.2
+;;; Author: Michael Klishin
+;;; URL: https://github.com/kaofelix/cucumber.el
+;;; Uploader: Kao Félix
+
+;; Copyright (C) 2008 — 2010 Michael Klishin and other contributors
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -339,6 +343,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (feature-minor-modes)
   (run-mode-hooks 'feature-mode-hook))
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
 ;;
@@ -466,3 +471,4 @@ are loaded on startup.  If nil, don't load snippets.")
 
 (provide 'cucumber-mode)
 (provide 'feature-mode)
+;;; feature-mode.el ends here
