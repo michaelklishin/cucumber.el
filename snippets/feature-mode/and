@@ -1,3 +1,4 @@
+#key: and
 #name: And something else
 # --
 And ${1:something else}
