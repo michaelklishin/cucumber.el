@@ -33,6 +33,9 @@
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
 ;;
+;; If using RVM, set `feature-use-rvm' to `t' to enable RVM
+;; support. This requires `rvm.el'.
+;;
 ;; Language used in feature file is automatically detected from
 ;; "language: [2-letter ISO-code]" tag in feature file.  You can
 ;; choose the language feature-mode should use in case autodetection
@@ -84,6 +87,11 @@
   "set this variable to the command, which should be used to execute cucumber scenarios."
   :group 'feature-mode
   :type 'string)
+
+(defcustom feature-use-rvm nil
+  "t when RVM is in use. (Requires rvm.el)"
+  :type 'boolean
+  :group 'feature-mode)
 
 ;;
 ;; Keywords and font locking
@@ -427,6 +435,8 @@ are loaded on startup.  If nil, don't load snippets.")
                        feature-default-directory)))
     (ansi-color-for-comint-mode-on)
     (let ((default-directory (feature-project-root)))
+      (if feature-use-rvm
+          (rvm-activate-corresponding-ruby))
       (compile (concat (replace-regexp-in-string "\{options\}" opts-str
                         (replace-regexp-in-string "\{feature\}" feature-arg feature-cucumber-command))) t)))
   (end-of-buffer-other-window 0))
