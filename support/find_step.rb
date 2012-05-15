@@ -66,7 +66,7 @@ end
 
 input_text = ARGV[0].strip.gsub(/(When|Then|Given|And) */, "")
 
-files = Dir["features/**/*/**/*_steps.rb"]
+files = Dir["features/**/*steps.rb"]
 steps = []
 files.each do |file|
   steps.concat(StepParser.new(file).steps)
