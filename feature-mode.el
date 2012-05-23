@@ -329,7 +329,10 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (set (make-local-variable 'font-lock-defaults)
        (list (feature-font-lock-keywords-for (feature-detect-language)) nil nil))
   (set (make-local-variable 'font-lock-keywords)
-       (feature-font-lock-keywords-for (feature-detect-language))))
+       (feature-font-lock-keywords-for (feature-detect-language)))
+  (set (make-local-variable 'imenu-generic-expression)
+        `(("Scenario:" ,(feature-scenario-name-re (feature-detect-language)) 2)
+          ("Background:" ,(feature-background-re (feature-detect-language)) 1))))
 
 (defun feature-minor-modes ()
   "Enable all minor modes for feature mode."
