@@ -573,3 +573,22 @@
   then: "*|那麼<"
   and: "*|而且<|並且<"
   but: "*|但是<"
+"th_TH":
+  name: Thai
+  native: ภาษาไทย
+  feature: ลักษณะ
+  background: พื้นหลัง
+  scenario: สถานการณ์
+  scenario_outline: ร่างสถานการณ์
+  examples: ตัวอย่าง
+  given: "*|ที่ได้รับ<"
+  when: "*|เวลาไหน<"
+  then: "*|หลังจากนั้น<"
+  and: "*|และ<"
+  but: "*|แต่<"
+  
+  
+  
+  
+  
+  
