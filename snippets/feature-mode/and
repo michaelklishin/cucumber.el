@@ -1,5 +1,7 @@
-#key: and
-#name: And something else
+# -*- mode: snippet -*-
+# key: and
+# name: And something else
+# expand-env: ((yas-indent-line 'fixed))
 # --
 And ${1:something else}
 $0
