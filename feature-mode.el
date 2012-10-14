@@ -425,7 +425,7 @@ are loaded on startup.  If nil, don't load snippets.")
 
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
-(defun feature-run-cucumber (cuke-opts &optional &key feature-file)
+(defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
   (feature-register-verify-redo (list 'feature-run-cucumber
                                       (list 'quote cuke-opts)
