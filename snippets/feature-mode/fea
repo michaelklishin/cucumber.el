@@ -1,5 +1,7 @@
-#key: fea
-#name: Feature: Name
+# -*- mode: snippet -*-
+# key: fea
+# name: Feature: Name
+# expand-env: ((yas-indent-line 'fixed))
 # --
 Feature: ${1:Name}
   In order to ${2:get some business value}

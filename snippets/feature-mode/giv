@@ -1,5 +1,7 @@
-#key: giv
-#name: Given a known starting condition
+# -*- mode: snippet -*-
+# key: giv
+# name: Given a known starting condition
+# expand-env: ((yas-indent-line 'fixed))
 # --
 Given ${1:a known starting condition}
 $0

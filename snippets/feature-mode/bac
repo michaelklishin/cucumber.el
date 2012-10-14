@@ -1,5 +1,7 @@
-#key: bac
-#name: Background
+# -*- mode: snippet -*-
+# key: bac
+# name: Background
+# expand-env: ((yas-indent-line 'fixed))
 # --
 Background:
   Given ${1: a known starting condition}
