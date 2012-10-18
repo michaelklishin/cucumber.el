@@ -255,11 +255,11 @@
 
 (defcustom feature-indent-level 2
   "Indentation of feature statements"
-  :type 'integer :group 'feature)
+  :type 'integer :group 'feature-mode)
 
 (defcustom feature-indent-offset 2
   "*Amount of offset per level of indentation."
-  :type 'integer :group 'feature)
+  :type 'integer :group 'feature-mode)
 
 (defun feature-compute-indentation ()
   "Calculate the maximum sensible indentation for the current line."
