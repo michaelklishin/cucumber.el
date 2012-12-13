@@ -187,7 +187,7 @@
                   (".*" nil nil (0 font-lock-type-face t)))
     (background . (0 font-lock-keyword-face))
     (scenario     (0 font-lock-keyword-face)
-                  (".*" nil nil (0 font-lock-function-name-face t)))
+                  (".*" nil nil (0 font-lock-function-name-face nil)))
     (scenario_outline
                   (0 font-lock-keyword-face)
                   (".*" nil nil (0 font-lock-function-name-face t)))
