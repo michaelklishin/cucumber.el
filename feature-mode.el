@@ -197,6 +197,7 @@
     (but        . font-lock-keyword-face)
     (and        . font-lock-keyword-face)
     (examples   . font-lock-keyword-face)
+    ("<.*>"     . font-lock-variable-name-face)
     ("^ *@.*"   . font-lock-preprocessor-face)
     ("^ *#.*"     0 font-lock-comment-face t)))
 
