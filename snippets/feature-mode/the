@@ -1,7 +1,6 @@
 # -*- mode: snippet -*-
 # key: the
 # name: Then some expected outcome
-# expand-env: ((yas-indent-line 'fixed))
 # --
 Then ${1:some expected outcome}
 $0
