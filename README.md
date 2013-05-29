@@ -6,7 +6,7 @@ Emacs mode for editing plain text user stories
 
 ### Manual
 
-Copy alll the files to ~/.emacs.d/elisp/feature-mode, for example,
+Copy all the files to ~/.emacs.d/elisp/feature-mode, for example,
 and add this to your .emacs to load the mode
 
 ```lisp
