@@ -1,7 +1,6 @@
 # -*- mode: snippet -*-
 # key: whe
 # name: When some action
-# expand-env: ((yas-indent-line 'fixed))
 # --
 When ${1:some action}
 $0
