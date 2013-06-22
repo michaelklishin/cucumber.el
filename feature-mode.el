@@ -93,7 +93,7 @@
   :type 'boolean
   :group 'feature-mode)
 
-(defcustom feature-root-marker-file-name "Rakefile"
+(defcustom feature-root-marker-file-name "features"
   "file to look for to find the project root."
   :group 'feature-mode
   :type  'string)
