@@ -467,6 +467,11 @@ are loaded on startup.  If nil, don't load snippets.")
         directory
       (feature-project-root (file-name-directory (directory-file-name directory))))))
 
+(defun expand-home-shellism ()
+  (replace-regexp-in-string "~" "$HOME" (feature-project-root))
+  )
+
+
 (defun feature-goto-step-definition ()
   "Goto the step-definition under (point).  Requires ruby."
   (interactive)
@@ -474,7 +479,7 @@ are loaded on startup.  If nil, don't load snippets.")
          (input (thing-at-point 'line))
          (_ (set-text-properties 0 (length input) nil input))
          (result (shell-command-to-string (format "cd %S && ruby %S/find_step.rb %s %s %S"
-                                                  root
+                                                  (expand-home-shellism)
                                                   feature-support-directory
                                                   (feature-detect-language)
                                                   feature-default-i18n-file
