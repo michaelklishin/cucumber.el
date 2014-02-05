@@ -341,8 +341,10 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
           ("Background:" ,(feature-background-re (feature-detect-language)) 1))))
 
 (defun feature-minor-modes ()
-  "Enable all minor modes for feature mode."
-  (turn-on-orgtbl))
+  "Enable/disable all minor modes for feature mode."
+  (turn-on-orgtbl)
+  (when (fboundp 'electric-indent-mode)
+    (electric-indent-mode -1)))
 
 ;;
 ;; Mode function
