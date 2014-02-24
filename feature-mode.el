@@ -98,6 +98,10 @@
   :group 'feature-mode
   :type  'string)
 
+(defcustom feature-align-steps-after-first-word nil
+  "when set to t, make step lines align on the space after the first word"
+  :type 'boolean
+  :group 'feature-mode)
 ;;
 ;; Keywords and font locking
 ;;
@@ -267,20 +271,66 @@
   "*Amount of offset per level of indentation."
   :type 'integer :group 'feature-mode)
 
+
+
+(defun given-when-then-wordlength (lang)
+  (let* ((when-then-and-words '(given when then and but))
+         (language-keywords (cdr (assoc lang feature-keywords-per-language)))
+         (rexes (append (mapcar
+                         (lambda (kw) (cdr (assoc kw language-keywords)))
+                         when-then-and-words))))
+    (beginning-of-line)
+    ;; white-space means offset -1
+    (if (or (bobp) (eobp))
+        nil
+      (if (looking-at feature-blank-line-re)
+          0
+        (if (some (lambda (rex) (looking-at rex)) rexes)
+            (length (match-string 1))
+          nil)))))
+
+
+(defun compute-given-when-then-offset (lang)
+  (if feature-align-steps-after-first-word
+      (progn
+        (setq current-word-length (given-when-then-wordlength lang))
+        (cond
+         ;; a non-given-when-then-line doesn't adjust the
+         ;; offset
+         ((null current-word-length) 0)
+         ;; the same happens for empty lines
+         ((= 0 current-word-length) 0)
+         ;; we are on a proper line, figure out
+         ;; the lengths of all lines preceding us
+         (t (let ((search (lambda (direction lang)
+                            (forward-line direction)
+                            (setq search-word-length (given-when-then-wordlength lang))
+                            (cond
+                             ((null search-word-length) nil)
+                             (t (cons search-word-length (funcall search direction lang)))))))
+              (setq previous-lengths (save-excursion
+                                       (funcall search -1 lang)))
+              (- (car previous-lengths) current-word-length)))))
+    0))
+
+
 (defun feature-compute-indentation ()
   "Calculate the maximum sensible indentation for the current line."
   (save-excursion
     (beginning-of-line)
-    (if (bobp) 10
-      (forward-line -1)
-      (while (and (looking-at feature-blank-line-re)
-                  (> (point) (point-min)))
-        (forward-line -1))
-      (+ (current-indentation)
-         (if (or (looking-at (feature-feature-re (feature-detect-language)))
-                 (looking-at (feature-scenario-re (feature-detect-language)))
-                 (looking-at (feature-background-re (feature-detect-language))))
-             feature-indent-offset 0)))))
+    (let* ((lang (feature-detect-language))
+           (given-when-then-offset (compute-given-when-then-offset lang)))
+      (if (bobp) 10
+        (forward-line -1)
+        (while (and (looking-at feature-blank-line-re)
+                    (> (point) (point-min)))
+          (forward-line -1))
+        (+ (current-indentation)
+           given-when-then-offset
+           (if (or (looking-at (feature-feature-re lang))
+                   (looking-at (feature-scenario-re lang))
+                   (looking-at (feature-background-re lang)))
+               feature-indent-offset 0))))))
 
 (defun feature-indent-line ()
   "Indent the current line.
