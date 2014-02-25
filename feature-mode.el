@@ -308,9 +308,11 @@
                             (cond
                              ((null search-word-length) nil)
                              (t (cons search-word-length (funcall search direction lang)))))))
-              (setq previous-lengths (save-excursion
-                                       (funcall search -1 lang)))
-              (- (car previous-lengths) current-word-length)))))
+              (setq previous-lengths (delq 0 (save-excursion
+                                                 (funcall search -1 lang))))
+              (if (not (null previous-lengths))
+                  (- (car previous-lengths) current-word-length)
+                0)))))
     0))
 
 
