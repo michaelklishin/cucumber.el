@@ -52,7 +52,7 @@ class StepParser
     when :iter
       child_sexp = sexp[1]
       return unless child_sexp[0] == :call && @keywords.include?(child_sexp[2])
-      regexp = child_sexp[3][1] && child_sexp[3][1][1]
+      regexp = child_sexp[3][1]
       @steps << Step.new(regexp, file, child_sexp.line)
     else
       sexp.each do |child_sexp|
