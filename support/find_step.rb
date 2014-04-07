@@ -1,5 +1,5 @@
 require 'rubygems'
-gem "ruby_parser", "~> 2.0"
+gem "ruby_parser"
 require 'ruby_parser'
 require 'yaml'
 
