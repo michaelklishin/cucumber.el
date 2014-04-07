@@ -33,17 +33,13 @@ class Step
 end
 
 class StepParser
-  def self.parser
-    @parser ||= RubyParser.new
-  end
-
   attr_accessor :steps, :file
 
   def initialize(file, keywords)
     @file = file
     @steps = []
     @keywords = keywords
-    extract_steps(self.class.parser.parse(File.read(file)))
+    extract_steps(RubyParser.new.parse(File.read(file)))
   end
 
   def extract_steps(sexp)
