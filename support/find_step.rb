@@ -71,13 +71,11 @@ keywords = (i18n["when"] + i18n["then"] + i18n["given"] + i18n["and"]).gsub("*",
 input_text = ARGV[2].strip.gsub(/(#{keywords.join("|")}) */, "")
 
 files = Dir["features/**/*steps.rb"]
-steps = []
-files.each do |file|
-  steps.concat(StepParser.new(file, keywords).steps)
-end
-
-steps.each do |step|
-  if step.match?(input_text)
-    puts "#{step.file}:#{step.line}"
+files.each_with_index do |file, i|
+  StepParser.new(file, keywords).steps.each do |step|
+    if step.match?(input_text)
+      puts "#{step.file}:#{step.line}"
+      exit
+    end
   end
 end
