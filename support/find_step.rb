@@ -1,5 +1,5 @@
 require 'rubygems'
-gem "ruby_parser", "~> 2.0"
+gem "ruby_parser"
 require 'ruby_parser'
 require 'yaml'
 
@@ -33,17 +33,13 @@ class Step
 end
 
 class StepParser
-  def self.parser
-    @parser ||= RubyParser.new
-  end
-
   attr_accessor :steps, :file
 
   def initialize(file, keywords)
     @file = file
     @steps = []
     @keywords = keywords
-    extract_steps(self.class.parser.parse(File.read(file)))
+    extract_steps(RubyParser.new.parse(File.read(file)))
   end
 
   def extract_steps(sexp)
@@ -56,7 +52,7 @@ class StepParser
     when :iter
       child_sexp = sexp[1]
       return unless child_sexp[0] == :call && @keywords.include?(child_sexp[2])
-      regexp = child_sexp[3][1] && child_sexp[3][1][1]
+      regexp = child_sexp[3][1]
       @steps << Step.new(regexp, file, child_sexp.line)
     else
       sexp.each do |child_sexp|
@@ -75,13 +71,11 @@ keywords = (i18n["when"] + i18n["then"] + i18n["given"] + i18n["and"]).gsub("*",
 input_text = ARGV[2].strip.gsub(/(#{keywords.join("|")}) */, "")
 
 files = Dir["features/**/*steps.rb"]
-steps = []
-files.each do |file|
-  steps.concat(StepParser.new(file, keywords).steps)
-end
-
-steps.each do |step|
-  if step.match?(input_text)
-    puts "#{step.file}:#{step.line}"
+files.each_with_index do |file, i|
+  StepParser.new(file, keywords).steps.each do |step|
+    if step.match?(input_text)
+      puts "#{step.file}:#{step.line}"
+      exit
+    end
   end
 end
