@@ -389,7 +389,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (set (make-local-variable 'font-lock-keywords)
        (feature-font-lock-keywords-for (feature-detect-language)))
   (set (make-local-variable 'imenu-generic-expression)
-        `(("Scenario:" ,(feature-scenario-name-re (feature-detect-language)) 2)
+        `(("Scenario:" ,(feature-scenario-name-re (feature-detect-language)) 3)
           ("Background:" ,(feature-background-re (feature-detect-language)) 1))))
 
 (defun feature-minor-modes ()
@@ -445,7 +445,7 @@ are loaded on startup.  If nil, don't load snippets.")
 ;;
 
 (defun feature-scenario-name-re (language)
-  (concat (feature-scenario-re (feature-detect-language)) "[[:space:]]+\\(.*\\)$"))
+  (concat (feature-scenario-re (feature-detect-language)) "\\( Outline:?\\)?[[:space:]]+\\(.*\\)$"))
 
 (defun feature-scenario-name-at-pos (&optional pos)
   "Returns the name of the scenario at the specified position. if pos is not specified the current buffer location will be used."
@@ -455,7 +455,7 @@ are loaded on startup.  If nil, don't load snippets.")
       (end-of-line)
       (unless (re-search-backward (feature-scenario-name-re (feature-detect-language)) nil t)
         (error "Unable to find an scenario"))
-      (match-string-no-properties 2))))
+      (match-string-no-properties 3))))
 
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
