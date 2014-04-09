@@ -461,7 +461,7 @@ are loaded on startup.  If nil, don't load snippets.")
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
   (interactive)
   (feature-run-cucumber
-   (list "-n" (concat "'" (feature-escape-scenario-name (feature-scenario-name-at-pos)) "'"))
+   (list "-n" (shell-quote-argument (feature-scenario-name-at-pos)) )
    :feature-file (buffer-file-name)))
 
 (defun feature-verify-all-scenarios-in-buffer ()
@@ -501,12 +501,8 @@ are loaded on startup.  If nil, don't load snippets.")
           (compilation-scroll-output t))
       (if feature-use-rvm
           (rvm-activate-corresponding-ruby))
-      (compile (concat (replace-regexp-in-string "\{options\}" opts-str
-                        (replace-regexp-in-string "\{feature\}" feature-arg feature-cucumber-command))) t))))
-
-(defun feature-escape-scenario-name (scenario-name)
-  "Escapes all the characaters in a scenario name that mess up using in the -n options"
-  (replace-regexp-in-string "\\(\"\\)" "\\\\\\\\\\\\\\1" (replace-regexp-in-string "\\([()\']\\|\\[\\|\\]\\)" "\\\\\\1" scenario-name)))
+      (compile (concat (replace-regexp-in-string "{options}" opts-str
+                         (replace-regexp-in-string "{feature}" feature-arg feature-cucumber-command) t t)) t))))
 
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
