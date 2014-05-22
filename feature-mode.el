@@ -447,21 +447,11 @@ are loaded on startup.  If nil, don't load snippets.")
 (defun feature-scenario-name-re (language)
   (concat (feature-scenario-re (feature-detect-language)) "\\( Outline:?\\)?[[:space:]]+\\(.*\\)$"))
 
-(defun feature-scenario-name-at-pos (&optional pos)
-  "Returns the name of the scenario at the specified position. if pos is not specified the current buffer location will be used."
-  (interactive)
-  (let ((start (or pos (point))))
-    (save-excursion
-      (end-of-line)
-      (unless (re-search-backward (feature-scenario-name-re (feature-detect-language)) nil t)
-        (error "Unable to find an scenario"))
-      (match-string-no-properties 3))))
-
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.  If post is not specified the current buffer location will be used."
   (interactive)
   (feature-run-cucumber
-   (list "-n" (shell-quote-argument (feature-scenario-name-at-pos)) )
+   (list "-l" (number-to-string (line-number-at-pos)))
    :feature-file (buffer-file-name)))
 
 (defun feature-verify-all-scenarios-in-buffer ()
