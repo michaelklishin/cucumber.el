@@ -377,7 +377,8 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
 
 (defun feature-mode-variables ()
   (set-syntax-table feature-mode-syntax-table)
-  (setq require-final-newline t)
+  (when mode-require-final-newline
+    (setq require-final-newline t))
   (setq comment-start "# ")
   (setq comment-start-skip "#+ *")
   (setq comment-end "")
