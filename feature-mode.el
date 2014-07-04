@@ -102,6 +102,18 @@
   "when set to t, make step lines align on the space after the first word"
   :type 'boolean
   :group 'feature-mode)
+
+(defcustom feature-step-search-path "features/**/*steps.rb"
+  "Command to run ruby"
+  :type 'string
+  :group 'feature-mode)
+
+(defcustom feature-ruby-command "ruby"
+  "Command to run ruby"
+  :type 'string
+  :group 'feature-mode)
+
+
 ;;
 ;; Keywords and font locking
 ;;
@@ -519,12 +531,14 @@ are loaded on startup.  If nil, don't load snippets.")
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
          (_ (set-text-properties 0 (length input) nil input))
-         (result (shell-command-to-string (format "cd %S && ruby %S/find_step.rb %s %s %S"
+         (result (shell-command-to-string (format "cd %S && %s %S/find_step.rb %s %s %S %s"
                                                   (expand-home-shellism)
+                                                  feature-ruby-command
                                                   feature-support-directory
                                                   (feature-detect-language)
                                                   (buffer-file-name)
-                                                  (line-number-at-pos))))
+                                                  (line-number-at-pos)
+                                                  (shell-quote-argument feature-step-search-path))))
          (matches (read result))
          (matches-length (safe-length matches)))
 
