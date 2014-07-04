@@ -256,7 +256,7 @@
 
 ;; Constants
 
-(defconst feature-blank-line-re "^[ \t]*$"
+(defconst feature-blank-line-re "^[ \t]*\\(?:#.*\\)?$"
   "Regexp matching a line containing only whitespace.")
 
 (defun feature-feature-re (language)
@@ -343,6 +343,7 @@
 	(while (and (looking-at feature-blank-line-re)
 		    (> (point) (point-min)))
 	  (forward-line -1))
+	;; Use initial offset of we went all the way up to the beginning of the file
 	(if (and (bobp) (looking-at feature-blank-line-re)) feature-indent-initial-offset
 	  (+ (current-indentation)
 	     given-when-then-offset
