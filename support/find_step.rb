@@ -100,7 +100,7 @@ class StepParser
   end
 end
 
-iso_code, feature_path, line, = ARGV
+iso_code, feature_path, line, step_search_path, = ARGV
 extractor = StepExtractor.new
 parser = Gherkin::Parser::Parser.new(extractor, true, 'root', false, iso_code)
 parser.parse(IO.read(feature_path), feature_path, 0)
@@ -129,7 +129,7 @@ end
 
 results = []
 keywords = Gherkin::I18n.get(iso_code).step_keywords[1..-1].map { |k| k.strip.to_sym }
-files = Dir["features/**/*steps.rb"]
+files = Dir[step_search_path]
 files.each_with_index do |file, i|
   StepParser.new(file, keywords).steps.each do |step|
     inputs.each do |input_text|
