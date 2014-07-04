@@ -259,11 +259,17 @@
 (defconst feature-blank-line-re "^[ \t]*\\(?:#.*\\)?$"
   "Regexp matching a line containing only whitespace.")
 
+(defconst feature-example-line-re "^[ \t]\\\\|"
+  "Regexp matching a line containing scenario example.")
+
 (defun feature-feature-re (language)
   (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
 
 (defun feature-scenario-re (language)
   (cdr (assoc 'scenario (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-examples-re (language)
+  (cdr (assoc 'examples (cdr (assoc language feature-keywords-per-language)))))
 
 (defun feature-background-re (language)
   (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
@@ -331,6 +337,12 @@
                 0)))))
     0))
 
+(defun feature-search-for-regex-match (key)
+  "Search for matching regexp on each line"
+  (forward-line -1)
+  (while (and (not (funcall key)) (> (point) (point-min)))
+    (forward-line -1))
+)
 
 (defun feature-compute-indentation ()
   "Calculate the maximum sensible indentation for the current line."
@@ -338,19 +350,54 @@
     (beginning-of-line)
     (if (bobp) feature-indent-initial-offset
       (let* ((lang (feature-detect-language))
-	     (given-when-then-offset (compute-given-when-then-offset lang)))
-	(forward-line -1)
-	(while (and (looking-at feature-blank-line-re)
-		    (> (point) (point-min)))
-	  (forward-line -1))
-	;; Use initial offset of we went all the way up to the beginning of the file
-	(if (and (bobp) (looking-at feature-blank-line-re)) feature-indent-initial-offset
-	  (+ (current-indentation)
-	     given-when-then-offset
-	     (if (or (looking-at (feature-feature-re lang))
-		     (looking-at (feature-scenario-re lang))
-		     (looking-at (feature-background-re lang)))
-		 feature-indent-offset 0)))))))
+             (given-when-then-offset (compute-given-when-then-offset lang))
+             (saved-indentation (current-indentation)))
+        (cond
+         ((looking-at (feature-feature-re lang))
+          (progn
+            (feature-search-for-regex-match (lambda () (looking-at (feature-feature-re lang))))
+            (current-indentation)
+            ))
+         ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+          (progn
+            (feature-search-for-regex-match
+             (lambda () (or (looking-at (feature-feature-re lang))
+                            (looking-at (feature-background-re lang))
+                            (looking-at (feature-scenario-re lang)))))
+            (cond
+             ((looking-at (feature-feature-re lang)) (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at (feature-background-re lang))
+                  (looking-at (feature-scenario-re lang))) (current-indentation))
+             (t saved-indentation))
+            ))
+         ((looking-at (feature-examples-re lang))
+          (progn
+            (feature-search-for-regex-match
+             (lambda () (or (looking-at (feature-background-re lang))
+                            (looking-at (feature-scenario-re lang)))))
+            (if (or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+                (+ (current-indentation) feature-indent-offset)
+              saved-indentation)
+            ))
+         ((looking-at feature-example-line-re)
+          (progn
+            (feature-search-for-regex-match
+             (lambda () (looking-at (feature-examples-re lang))))
+            (if (looking-at (feature-examples-re lang))
+                (+ (current-indentation) feature-indent-offset)
+              saved-indentation)
+            ))
+         (t
+          (progn
+            (feature-search-for-regex-match (lambda () (not (looking-at feature-blank-line-re))))
+            (+ (current-indentation)
+               given-when-then-offset
+               (if (or (looking-at (feature-feature-re lang))
+                       (looking-at (feature-scenario-re lang))
+                       (looking-at (feature-background-re lang)))
+                   feature-indent-offset 0))
+            ))
+         )))))
 
 (defun feature-indent-line ()
   "Indent the current line.
