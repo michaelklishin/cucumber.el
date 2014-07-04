@@ -275,6 +275,10 @@
 (defvar feature-mode-hook nil
   "Hook run when entering `feature-mode'.")
 
+(defcustom feature-indent-initial-offset 10
+  "Indentation of the first file"
+  :type 'integer :group 'feature-mode)
+
 (defcustom feature-indent-level 2
   "Indentation of feature statements"
   :type 'integer :group 'feature-mode)
@@ -332,19 +336,20 @@
   "Calculate the maximum sensible indentation for the current line."
   (save-excursion
     (beginning-of-line)
-    (let* ((lang (feature-detect-language))
-           (given-when-then-offset (compute-given-when-then-offset lang)))
-      (if (bobp) 10
-        (forward-line -1)
-        (while (and (looking-at feature-blank-line-re)
-                    (> (point) (point-min)))
-          (forward-line -1))
-        (+ (current-indentation)
-           given-when-then-offset
-           (if (or (looking-at (feature-feature-re lang))
-                   (looking-at (feature-scenario-re lang))
-                   (looking-at (feature-background-re lang)))
-               feature-indent-offset 0))))))
+    (if (bobp) feature-indent-initial-offset
+      (let* ((lang (feature-detect-language))
+	     (given-when-then-offset (compute-given-when-then-offset lang)))
+	(forward-line -1)
+	(while (and (looking-at feature-blank-line-re)
+		    (> (point) (point-min)))
+	  (forward-line -1))
+	(if (and (bobp) (looking-at feature-blank-line-re)) feature-indent-initial-offset
+	  (+ (current-indentation)
+	     given-when-then-offset
+	     (if (or (looking-at (feature-feature-re lang))
+		     (looking-at (feature-scenario-re lang))
+		     (looking-at (feature-background-re lang)))
+		 feature-indent-offset 0)))))))
 
 (defun feature-indent-line ()
   "Indent the current line.
