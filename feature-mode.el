@@ -259,7 +259,7 @@
 (defconst feature-blank-line-re "^[ \t]*\\(?:#.*\\)?$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst feature-example-line-re "^[ \t]\\\\|"
+(defconst feature-example-line-re "^[ \t]\\|"
   "Regexp matching a line containing scenario example.")
 
 (defun feature-feature-re (language)
@@ -417,6 +417,11 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
         (indent-to need)))
     (if (< (current-column) (current-indentation))
         (forward-to-indentation 0))))
+
+(defadvice orgtbl-tab (before feature-indent-table-advice (&optional arg))
+  "Table org mode ignores our indentation, lets force it."
+  (feature-indent-line))
+(ad-activate 'orgtbl-tab)
 
 (defun feature-font-lock-keywords-for (language)
   (let ((result-keywords . ()))
