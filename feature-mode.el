@@ -82,6 +82,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'thingatpt)
+(require 'etags)
 
 (defcustom feature-cucumber-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
   "set this variable to the command, which should be used to execute cucumber scenarios."
@@ -236,7 +237,8 @@
   (define-key feature-mode-map  (kbd "C-c ,s") 'feature-verify-scenario-at-pos)
   (define-key feature-mode-map  (kbd "C-c ,v") 'feature-verify-all-scenarios-in-buffer)
   (define-key feature-mode-map  (kbd "C-c ,f") 'feature-verify-all-scenarios-in-project)
-  (define-key feature-mode-map  (kbd "C-c ,g") 'feature-goto-step-definition))
+  (define-key feature-mode-map  (kbd "C-c ,g") 'feature-goto-step-definition)
+  (define-key feature-mode-map  (kbd "M-.") 'feature-goto-step-definition))
 
 ;; Add relevant feature keybindings to ruby modes
 (add-hook 'ruby-mode-hook
@@ -609,6 +611,7 @@ are loaded on startup.  If nil, don't load snippets.")
               (if matched?
                   (let ((file (format "%s/%s" root (match-string 1 file-and-line)))
                         (line-no (string-to-number (match-string 2 file-and-line))))
+                    (ring-insert find-tag-marker-ring (point-marker))
                     (find-file file)
                     (goto-char (point-min))
                     (forward-line (1- line-no)))
