@@ -261,7 +261,7 @@
 (defconst feature-blank-line-re "^[ \t]*\\(?:#.*\\)?$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst feature-example-line-re "^[ \t]\\|"
+(defconst feature-example-line-re "^[ \t]\\\\|"
   "Regexp matching a line containing scenario example.")
 
 (defun feature-feature-re (language)
