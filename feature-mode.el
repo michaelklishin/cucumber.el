@@ -283,7 +283,7 @@
 (defvar feature-mode-hook nil
   "Hook run when entering `feature-mode'.")
 
-(defcustom feature-indent-initial-offset 10
+(defcustom feature-indent-initial-offset 0
   "Indentation of the first file"
   :type 'integer :group 'feature-mode)
 
