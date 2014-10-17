@@ -584,9 +584,8 @@ are loaded on startup.  If nil, don't load snippets.")
   (replace-regexp-in-string "~" "$HOME" (feature-project-root))
   )
 
-
-(defun feature-goto-step-definition ()
-  "Goto the step-definition under (point).  Requires ruby."
+(defun feature-find-step-definition (action)
+  "Find the step-definition under (point).  Requires ruby."
   (interactive)
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
@@ -611,13 +610,20 @@ are loaded on startup.  If nil, don't load snippets.")
               (if matched?
                   (let ((file (format "%s/%s" root (match-string 1 file-and-line)))
                         (line-no (string-to-number (match-string 2 file-and-line))))
-                    (ring-insert find-tag-marker-ring (point-marker))
-                    (find-file file)
-                    (goto-char (point-min))
-                    (forward-line (1- line-no)))
+                    (action root file line-no))
                 (message "An error occured: \n%s" result)))
           (message "No matching steps found for:\n%s" input))
       (message "An error occured: \n%s" result))))
+
+(defun feature-goto-step-definition ()
+  "Goto the step-definition under (point).  Requires ruby."
+  (feature-find-step-definition 
+    (lambda (project-root file line-no)
+      (progn
+        (ring-insert find-tag-marker-ring (point-marker))
+        (find-file file)
+        (goto-char (point-min))
+        (forward-line (1- line-no))))))
 
 (provide 'cucumber-mode)
 (provide 'feature-mode)
