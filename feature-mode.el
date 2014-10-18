@@ -586,7 +586,6 @@ are loaded on startup.  If nil, don't load snippets.")
 
 (defun feature-find-step-definition (action)
   "Find the step-definition under (point).  Requires ruby."
-  (interactive)
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
          (_ (set-text-properties 0 (length input) nil input))
@@ -610,14 +609,15 @@ are loaded on startup.  If nil, don't load snippets.")
               (if matched?
                   (let ((file (format "%s/%s" root (match-string 1 file-and-line)))
                         (line-no (string-to-number (match-string 2 file-and-line))))
-                    (action root file line-no))
+                    (funcall action root file line-no))
                 (message "An error occured: \n%s" result)))
           (message "No matching steps found for:\n%s" input))
       (message "An error occured: \n%s" result))))
 
 (defun feature-goto-step-definition ()
   "Goto the step-definition under (point).  Requires ruby."
-  (feature-find-step-definition 
+  (interactive)
+  (feature-find-step-definition
     (lambda (project-root file line-no)
       (progn
         (ring-insert find-tag-marker-ring (point-marker))
