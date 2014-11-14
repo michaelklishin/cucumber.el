@@ -468,8 +468,8 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
 (defun feature-minor-modes ()
   "Enable/disable all minor modes for feature mode."
   (turn-on-orgtbl)
-  (when (fboundp 'electric-indent-mode)
-    (electric-indent-mode -1)))
+  (set (make-local-variable 'electric-indent-functions)
+       (list (lambda (arg) 'no-indent))))
 
 ;;
 ;; Mode function
