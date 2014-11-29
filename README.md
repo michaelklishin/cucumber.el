@@ -46,6 +46,12 @@ Load feature-mode
 
 ## Key Bindings
 
+In order to get goto-step-definition to work, you must install the ruby_parser gem (version 2.0.x).For example:
+
+```
+gem install ruby_parser --version=2.0.5
+```
+
 Keybinding          | Description
 --------------------|------------------------------------------------------------
 <kbd>C-c ,v</kbd>   | Verify all scenarios in the current buffer file.
