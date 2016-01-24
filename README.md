@@ -68,7 +68,7 @@ Just configure it to load i18n.yml from your Gherkin gem sources.
 
 ## LICENSE
 
-Copyright (C) 2008 — 2014 Michael Klishin and other contributors
+Copyright (C) 2008 — 2016 Michael Klishin and other contributors
 
 You can redistribute it and/or modify it under the terms of the GNU
 General Public License either version 2 of the License, or (at your
@@ -82,7 +82,3 @@ details.
 You should have received a copy of the GNU General Public License if
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Suite 500, Boston, MA 02110.
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/michaelklishin/cucumber.el/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
