@@ -4,4 +4,4 @@
 # expand-env: ((yas-indent-line 'fixed))
 # --
 Scenario: ${1:Name}
-  $0
+  giv$0

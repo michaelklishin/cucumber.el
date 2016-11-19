@@ -4,5 +4,4 @@
 # expand-env: ((yas-indent-line 'fixed))
 # --
 Background:
-  Given ${1: a known starting condition}
-  $0
+  giv$0
