@@ -192,17 +192,17 @@
 (defconst feature-keywords-per-language
   (if (file-readable-p feature-default-i18n-file)
       (load-gherkin-i10n feature-default-i18n-file)
-  '(("en" . ((feature    . "^ *\\(Feature\\):?")
-             (background . "^ *\\(Background\\):?")
-             (scenario   . "^ *\\(Scenario\\):?")
+  '(("en" . ((feature    . "^ *\\(Feature\\):")
+             (background . "^ *\\(Background\\):")
+             (scenario   . "^ *\\(Scenario\\):")
              (scenario_outline .
-                           "^ *\\(Scenario Outline\\):?")
-             (given      . "^ *\\(Given\\)")
-             (when       . "^ *\\(When\\)")
-             (then       . "^ *\\(Then\\)")
-             (but        . "^ *\\(But\\)")
-             (and        . "^ *\\(And\\)")
-             (examples   . "^ *\\(Examples\\|Scenarios\\):?"))))))
+                           "^ *\\(Scenario Outline\\):")
+             (given      . "^ *\\(Given\\) ")
+             (when       . "^ *\\(When\\) ")
+             (then       . "^ *\\(Then\\) ")
+             (but        . "^ *\\(But\\) ")
+             (and        . "^ *\\(And\\) ")
+             (examples   . "^ *\\(Examples\\|Scenarios\\):"))))))
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)
