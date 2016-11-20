@@ -4,7 +4,8 @@
 # expand-env: ((yas-indent-line 'fixed))
 # --
 Feature: ${1:Name}
-  In order to ${2:get some business value}
-  ${3:Role} will need ${4:this sweet new feature}
+  As a ${2:role}
+  I need ${3:this feature}
+  So that ${4:I get some value}
 
-  $0
+sce$0

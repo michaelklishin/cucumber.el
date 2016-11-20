@@ -89,6 +89,11 @@
   :group 'feature-mode
   :type 'string)
 
+(defcustom feature-enable-back-denting t
+  "when enabled, subsequent pressing the tab key back-dents the current line by `feature-indent-offset' spaces"
+  :type 'boolean
+  :group 'feature-mode)
+
 (defcustom feature-use-rvm nil
   "t when RVM is in use. (Requires rvm.el)"
   :type 'boolean
@@ -192,17 +197,17 @@
 (defconst feature-keywords-per-language
   (if (file-readable-p feature-default-i18n-file)
       (load-gherkin-i10n feature-default-i18n-file)
-  '(("en" . ((feature    . "^ *\\(Feature\\):?")
-             (background . "^ *\\(Background\\):?")
-             (scenario   . "^ *\\(Scenario\\):?")
+  '(("en" . ((feature    . "^ *\\(Feature\\):")
+             (background . "^ *\\(Background\\):")
+             (scenario   . "^ *\\(Scenario\\):")
              (scenario_outline .
-                           "^ *\\(Scenario Outline\\):?")
-             (given      . "^ *\\(Given\\)")
-             (when       . "^ *\\(When\\)")
-             (then       . "^ *\\(Then\\)")
-             (but        . "^ *\\(But\\)")
-             (and        . "^ *\\(And\\)")
-             (examples   . "^ *\\(Examples\\|Scenarios\\):?"))))))
+                           "^ *\\(Scenario Outline\\):")
+             (given      . "^ *\\(Given\\) ")
+             (when       . "^ *\\(When\\) ")
+             (then       . "^ *\\(Then\\) ")
+             (but        . "^ *\\(But\\) ")
+             (and        . "^ *\\(And\\) ")
+             (examples   . "^ *\\(Examples\\|Scenarios\\):"))))))
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)
@@ -261,8 +266,14 @@
 (defconst feature-blank-line-re "^[ \t]*\\(?:#.*\\)?$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst feature-example-line-re "^[ \t]\\\\|"
+(defconst feature-example-line-re "^[ \t]*|"
   "Regexp matching a line containing scenario example.")
+
+(defconst feature-tag-line-re "^[ \t]*@"
+  "Regexp matching a tag/annotation")
+
+(defconst feature-pystring-re "^[ \t]*\"\"\"$"
+  "Regexp matching a pystring")
 
 (defun feature-feature-re (language)
   (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
@@ -275,6 +286,21 @@
 
 (defun feature-background-re (language)
   (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-given-re (language)
+  (cdr (assoc 'given (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-when-re (language)
+  (cdr (assoc 'when (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-then-re (language)
+  (cdr (assoc 'then (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-and-re (language)
+  (cdr (assoc 'and (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-but-re (language)
+  (cdr (assoc 'but (cdr (assoc language feature-keywords-per-language)))))
 
 ;;
 ;; Variables
@@ -360,16 +386,22 @@
             (feature-search-for-regex-match (lambda () (looking-at (feature-feature-re lang))))
             (current-indentation)
             ))
-         ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+         ((or (looking-at (feature-background-re lang))
+              (looking-at (feature-scenario-re lang))
+              (looking-at feature-tag-line-re))
           (progn
             (feature-search-for-regex-match
              (lambda () (or (looking-at (feature-feature-re lang))
+                            (looking-at feature-tag-line-re)
                             (looking-at (feature-background-re lang))
                             (looking-at (feature-scenario-re lang)))))
             (cond
-             ((looking-at (feature-feature-re lang)) (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at (feature-feature-re lang))
+                  (looking-at feature-tag-line-re)
+                  ) feature-indent-level)
              ((or (looking-at (feature-background-re lang))
-                  (looking-at (feature-scenario-re lang))) (current-indentation))
+                  (looking-at (feature-scenario-re lang))
+                  ) (current-indentation))
              (t saved-indentation))
             ))
          ((looking-at (feature-examples-re lang))
@@ -381,13 +413,53 @@
                 (+ (current-indentation) feature-indent-offset)
               saved-indentation)
             ))
-         ((looking-at feature-example-line-re)
+         ((or (looking-at (feature-given-re lang))
+              (looking-at (feature-when-re lang))
+              (looking-at (feature-then-re lang))
+              (looking-at (feature-and-re lang))
+              (looking-at (feature-but-re lang)))
           (progn
             (feature-search-for-regex-match
-             (lambda () (looking-at (feature-examples-re lang))))
-            (if (looking-at (feature-examples-re lang))
-                (+ (current-indentation) feature-indent-offset)
-              saved-indentation)
+             (lambda () (or (looking-at (feature-background-re lang))
+                            (looking-at (feature-scenario-re lang))
+                            (looking-at (feature-given-re lang))
+                            (looking-at (feature-when-re lang))
+                            (looking-at (feature-then-re lang))
+                            (looking-at (feature-and-re lang))
+                            (looking-at (feature-but-re lang)))))
+            (cond
+             ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+              (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at (feature-given-re lang))
+                  (looking-at (feature-when-re lang))
+                  (looking-at (feature-then-re lang))
+                  (looking-at (feature-and-re lang))
+                  (looking-at (feature-but-re lang)))
+              (current-indentation))
+             (t saved-indentation))
+            ))
+         ((or (looking-at feature-example-line-re) (looking-at feature-pystring-re))
+          (progn
+            (feature-search-for-regex-match
+             (lambda () (or (looking-at (feature-examples-re lang))
+                            (looking-at (feature-given-re lang))
+                            (looking-at (feature-when-re lang))
+                            (looking-at (feature-then-re lang))
+                            (looking-at (feature-and-re lang))
+                            (looking-at (feature-but-re lang))
+                            (looking-at feature-example-line-re))))
+            (cond
+             ((or (looking-at (feature-examples-re lang))
+                  (looking-at (feature-given-re lang))
+                  (looking-at (feature-when-re lang))
+                  (looking-at (feature-then-re lang))
+                  (looking-at (feature-and-re lang))
+                  (looking-at (feature-but-re lang)))
+              (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at feature-example-line-re)
+                  (looking-at feature-pystring-re))
+              (current-indentation))
+             (t saved-indentation))
             ))
          (t
           (progn
@@ -414,7 +486,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
     (save-excursion
       (beginning-of-line)
       (delete-horizontal-space)
-      (if (and (equal last-command this-command) (/= ci 0))
+      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting)
           (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
         (indent-to need)))
     (if (< (current-column) (current-indentation))
