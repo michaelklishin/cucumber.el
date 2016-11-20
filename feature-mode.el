@@ -367,7 +367,7 @@
                             (looking-at (feature-background-re lang))
                             (looking-at (feature-scenario-re lang)))))
             (cond
-             ((looking-at (feature-feature-re lang)) (+ (current-indentation) feature-indent-offset))
+             ((looking-at (feature-feature-re lang)) (+ (current-indentation) feature-indent-level))
              ((or (looking-at (feature-background-re lang))
                   (looking-at (feature-scenario-re lang))) (current-indentation))
              (t saved-indentation))
