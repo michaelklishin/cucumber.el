@@ -264,6 +264,9 @@
 (defconst feature-example-line-re "^[ \t]*|"
   "Regexp matching a line containing scenario example.")
 
+(defconst feature-tag-line-re "^[ \t]*@"
+  "Regexp matching a tag/annotation")
+
 (defun feature-feature-re (language)
   (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
 
@@ -360,16 +363,22 @@
             (feature-search-for-regex-match (lambda () (looking-at (feature-feature-re lang))))
             (current-indentation)
             ))
-         ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+         ((or (looking-at (feature-background-re lang))
+              (looking-at (feature-scenario-re lang))
+              (looking-at feature-tag-line-re))
           (progn
             (feature-search-for-regex-match
              (lambda () (or (looking-at (feature-feature-re lang))
+                            (looking-at feature-tag-line-re)
                             (looking-at (feature-background-re lang))
                             (looking-at (feature-scenario-re lang)))))
             (cond
-             ((looking-at (feature-feature-re lang)) (+ (current-indentation) feature-indent-level))
+             ((or (looking-at (feature-feature-re lang))
+                  (looking-at feature-tag-line-re)
+                  ) feature-indent-level)
              ((or (looking-at (feature-background-re lang))
-                  (looking-at (feature-scenario-re lang))) (current-indentation))
+                  (looking-at (feature-scenario-re lang))
+                  ) (current-indentation))
              (t saved-indentation))
             ))
          ((looking-at (feature-examples-re lang))
