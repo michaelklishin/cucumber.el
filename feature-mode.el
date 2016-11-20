@@ -110,7 +110,12 @@
   :group 'feature-mode)
 
 (defcustom feature-step-search-path "features/**/*steps.rb"
-  "Command to run ruby"
+  "Path to project step definitions"
+  :type 'string
+  :group 'feature-mode)
+
+(defcustom feature-step-search-gems-path "gems/ruby/*/gems/*/**/*steps.rb"
+  "Path to find step definitions in installed gems"
   :type 'string
   :group 'feature-mode)
 
@@ -661,14 +666,15 @@ are loaded on startup.  If nil, don't load snippets.")
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
          (_ (set-text-properties 0 (length input) nil input))
-         (result (shell-command-to-string (format "cd %S && %s %S/find_step.rb %s %s %S %s"
+         (result (shell-command-to-string (format "cd %S && %s %S/find_step.rb %s %s %S %s %s"
                                                   (expand-home-shellism)
                                                   feature-ruby-command
                                                   feature-support-directory
                                                   (feature-detect-language)
                                                   (buffer-file-name)
                                                   (line-number-at-pos)
-                                                  (shell-quote-argument feature-step-search-path))))
+                                                  (shell-quote-argument feature-step-search-path)
+                                                  (shell-quote-argument feature-step-search-gems-path))))
          (matches (read result))
          (matches-length (safe-length matches)))
 
