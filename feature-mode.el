@@ -279,6 +279,21 @@
 (defun feature-background-re (language)
   (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
 
+(defun feature-given-re (language)
+  (cdr (assoc 'given (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-when-re (language)
+  (cdr (assoc 'when (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-then-re (language)
+  (cdr (assoc 'then (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-and-re (language)
+  (cdr (assoc 'and (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-but-re (language)
+  (cdr (assoc 'but (cdr (assoc language feature-keywords-per-language)))))
+
 ;;
 ;; Variables
 ;;
@@ -390,13 +405,52 @@
                 (+ (current-indentation) feature-indent-offset)
               saved-indentation)
             ))
+         ((or (looking-at (feature-given-re lang))
+              (looking-at (feature-when-re lang))
+              (looking-at (feature-then-re lang))
+              (looking-at (feature-and-re lang))
+              (looking-at (feature-but-re lang)))
+          (progn
+            (feature-search-for-regex-match
+             (lambda () (or (looking-at (feature-background-re lang))
+                            (looking-at (feature-scenario-re lang))
+                            (looking-at (feature-given-re lang))
+                            (looking-at (feature-when-re lang))
+                            (looking-at (feature-then-re lang))
+                            (looking-at (feature-and-re lang))
+                            (looking-at (feature-but-re lang)))))
+            (cond
+             ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+              (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at (feature-given-re lang))
+                  (looking-at (feature-when-re lang))
+                  (looking-at (feature-then-re lang))
+                  (looking-at (feature-and-re lang))
+                  (looking-at (feature-but-re lang)))
+              (current-indentation))
+             (t saved-indentation))
+            ))
          ((looking-at feature-example-line-re)
           (progn
             (feature-search-for-regex-match
-             (lambda () (looking-at (feature-examples-re lang))))
-            (if (looking-at (feature-examples-re lang))
-                (+ (current-indentation) feature-indent-offset)
-              saved-indentation)
+             (lambda () (or (looking-at (feature-examples-re lang))
+                            (looking-at (feature-given-re lang))
+                            (looking-at (feature-when-re lang))
+                            (looking-at (feature-then-re lang))
+                            (looking-at (feature-and-re lang))
+                            (looking-at (feature-but-re lang))
+                            (looking-at feature-example-line-re))))
+            (cond
+             ((or (looking-at (feature-examples-re lang))
+                  (looking-at (feature-given-re lang))
+                  (looking-at (feature-when-re lang))
+                  (looking-at (feature-then-re lang))
+                  (looking-at (feature-and-re lang))
+                  (looking-at (feature-but-re lang)))
+              (+ (current-indentation) feature-indent-offset))
+             ((looking-at feature-example-line-re)
+              (current-indentation))
+             (t saved-indentation))
             ))
          (t
           (progn
