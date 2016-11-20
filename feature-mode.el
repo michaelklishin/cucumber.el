@@ -272,6 +272,9 @@
 (defconst feature-tag-line-re "^[ \t]*@"
   "Regexp matching a tag/annotation")
 
+(defconst feature-pystring-re "^[ \t]*\"\"\"$"
+  "Regexp matching a pystring")
+
 (defun feature-feature-re (language)
   (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
 
@@ -435,7 +438,7 @@
               (current-indentation))
              (t saved-indentation))
             ))
-         ((looking-at feature-example-line-re)
+         ((or (looking-at feature-example-line-re) (looking-at feature-pystring-re))
           (progn
             (feature-search-for-regex-match
              (lambda () (or (looking-at (feature-examples-re lang))
@@ -453,7 +456,8 @@
                   (looking-at (feature-and-re lang))
                   (looking-at (feature-but-re lang)))
               (+ (current-indentation) feature-indent-offset))
-             ((looking-at feature-example-line-re)
+             ((or (looking-at feature-example-line-re)
+                  (looking-at feature-pystring-re))
               (current-indentation))
              (t saved-indentation))
             ))
