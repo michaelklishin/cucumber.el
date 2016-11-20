@@ -89,6 +89,11 @@
   :group 'feature-mode
   :type 'string)
 
+(defcustom feature-enable-back-denting t
+  "when enabled, subsequent pressing the tab key back-dents the current line by `feature-indent-offset' spaces"
+  :type 'boolean
+  :group 'feature-mode)
+
 (defcustom feature-use-rvm nil
   "t when RVM is in use. (Requires rvm.el)"
   :type 'boolean
@@ -477,7 +482,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
     (save-excursion
       (beginning-of-line)
       (delete-horizontal-space)
-      (if (and (equal last-command this-command) (/= ci 0))
+      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting)
           (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
         (indent-to need)))
     (if (< (current-column) (current-indentation))
