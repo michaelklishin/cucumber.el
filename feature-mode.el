@@ -486,7 +486,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
     (save-excursion
       (beginning-of-line)
       (delete-horizontal-space)
-      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting)
+      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting (called-interactively-p 'any))
           (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
         (indent-to need)))
     (if (< (current-column) (current-indentation))
