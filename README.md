@@ -80,6 +80,16 @@ Keybinding          | Description
 At the moment, Cucumber.el supports whatever your Cucumber supports.
 Just configure it to load i18n.yml from your Gherkin gem sources.
 
+## Project Development / Maintenance
+
+To run the tests in the source project, do the following:
+
+    gem install bundler
+    bundle
+    make test
+
+You may have to use `sudo` to run the gem install command.
+
 ## LICENSE
 
 Copyright (C) 2008 — 2016 Michael Klishin and other contributors

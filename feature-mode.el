@@ -84,8 +84,13 @@
 (require 'thingatpt)
 (require 'etags)
 
-(defcustom feature-cucumber-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
-  "set this variable to the command, which should be used to execute cucumber scenarios."
+(defcustom feature-cucumber-command "cucumber {options} \"{feature}\""
+  "command used to run cucumber when there is no Rakefile"
+  :group 'feature-mode
+  :type 'string)
+
+(defcustom feature-rake-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
+  "command used to run cucumber when there is a Rakefile"
   :group 'feature-mode
   :type 'string)
 
@@ -491,7 +496,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
     (save-excursion
       (beginning-of-line)
       (delete-horizontal-space)
-      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting)
+      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting (called-interactively-p 'any))
           (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
         (indent-to need)))
     (if (< (current-column) (current-indentation))
@@ -625,6 +630,24 @@ are loaded on startup.  If nil, don't load snippets.")
 
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
+(defun project-file-exists (filename)
+  "Determines if the project has a file"
+  (file-exists-p (concat (feature-project-root) filename)))
+
+(defun can-run-bundle ()
+  "Determines if bundler is installed and a Gemfile exists"
+  (and (project-file-exists "Gemfile")
+       (executable-find "bundle")))
+
+(defun construct-cucumber-command (command-template opts-str feature-arg)
+  "Creates a complete command to launch cucumber"
+  (let ((base-command
+         (concat (replace-regexp-in-string
+                  "{options}" opts-str
+                  (replace-regexp-in-string "{feature}" feature-arg command-template) t t))))
+    (concat (if (can-run-bundle) "bundle exec " "")
+            base-command)))
+
 (defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
   (feature-register-verify-redo (list 'feature-run-cucumber
@@ -635,14 +658,16 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
         (feature-arg (if feature-file
                          feature-file
-                       feature-default-directory)))
+                       feature-default-directory))
+        (command-template (if (project-file-exists "Rakefile")
+                              feature-rake-command
+                            feature-cucumber-command)))
     (ansi-color-for-comint-mode-on)
     (let ((default-directory (feature-project-root))
           (compilation-scroll-output t))
       (if feature-use-rvm
           (rvm-activate-corresponding-ruby))
-      (compile (concat (replace-regexp-in-string "{options}" opts-str
-                         (replace-regexp-in-string "{feature}" feature-arg feature-cucumber-command) t t)) t))))
+      (compile (construct-cucumber-command command-template opts-str feature-arg) t))))
 
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
