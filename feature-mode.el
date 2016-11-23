@@ -630,17 +630,23 @@ are loaded on startup.  If nil, don't load snippets.")
 
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
+(defun project-file-exists (filename)
+  "Determines if the project has a file"
+  (file-exists-p (concat (feature-project-root) filename)))
+
+(defun can-run-bundle ()
+  "Determines if bundler is installed and a Gemfile exists"
+  (and (project-file-exists "Gemfile")
+       (executable-find "bundle")))
+
 (defun construct-cucumber-command (command-template opts-str feature-arg)
   "Creates a complete command to launch cucumber"
-  (concat (replace-regexp-in-string
-           "{options}" opts-str
-           (replace-regexp-in-string "{feature}" feature-arg command-template) t t)))
-
-(defun rakefile-exists ()
-  "Determines if the project has a Rakefile"
-  (let ((rakefile (concat (feature-project-root) "Rakefile")))
-    (princ (concat "rakefile = " rakefile))
-    (file-exists-p rakefile)))
+  (let ((base-command
+         (concat (replace-regexp-in-string
+                  "{options}" opts-str
+                  (replace-regexp-in-string "{feature}" feature-arg command-template) t t))))
+    (concat (if (can-run-bundle) "bundle exec " "")
+            base-command)))
 
 (defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
@@ -653,7 +659,7 @@ are loaded on startup.  If nil, don't load snippets.")
         (feature-arg (if feature-file
                          feature-file
                        feature-default-directory))
-        (command-template (if (rakefile-exists)
+        (command-template (if (project-file-exists "Rakefile")
                               feature-rake-command
                             feature-cucumber-command)))
     (ansi-color-for-comint-mode-on)
