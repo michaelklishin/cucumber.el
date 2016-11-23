@@ -84,8 +84,13 @@
 (require 'thingatpt)
 (require 'etags)
 
-(defcustom feature-cucumber-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
-  "set this variable to the command, which should be used to execute cucumber scenarios."
+(defcustom feature-cucumber-command "cucumber {options} \"{feature}\""
+  "command used to run cucumber when there is no Rakefile"
+  :group 'feature-mode
+  :type 'string)
+
+(defcustom feature-rake-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
+  "command used to run cucumber when there is a Rakefile"
   :group 'feature-mode
   :type 'string)
 
@@ -625,6 +630,18 @@ are loaded on startup.  If nil, don't load snippets.")
 
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
+(defun construct-cucumber-command (command-template opts-str feature-arg)
+  "Creates a complete command to launch cucumber"
+  (concat (replace-regexp-in-string
+           "{options}" opts-str
+           (replace-regexp-in-string "{feature}" feature-arg command-template) t t)))
+
+(defun rakefile-exists ()
+  "Determines if the project has a Rakefile"
+  (let ((rakefile (concat (feature-project-root) "Rakefile")))
+    (princ (concat "rakefile = " rakefile))
+    (file-exists-p rakefile)))
+
 (defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
   (feature-register-verify-redo (list 'feature-run-cucumber
@@ -635,14 +652,16 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
         (feature-arg (if feature-file
                          feature-file
-                       feature-default-directory)))
+                       feature-default-directory))
+        (command-template (if (rakefile-exists)
+                              feature-rake-command
+                            feature-cucumber-command)))
     (ansi-color-for-comint-mode-on)
     (let ((default-directory (feature-project-root))
           (compilation-scroll-output t))
       (if feature-use-rvm
           (rvm-activate-corresponding-ruby))
-      (compile (concat (replace-regexp-in-string "{options}" opts-str
-                         (replace-regexp-in-string "{feature}" feature-arg feature-cucumber-command) t t)) t))))
+      (compile (construct-cucumber-command command-template opts-str feature-arg) t))))
 
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
