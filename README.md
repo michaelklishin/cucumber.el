@@ -44,12 +44,27 @@ Load feature-mode
 (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
 ```
 
+Point goto-step-definition capability to your step definitions
+```lisp
+(setq feature-step-search-path "features/**/*steps.rb")
+(setq feature-step-search-gems-path "gems/ruby/*/gems/*/**/*steps.rb")
+```
+
+The `feature-step-search-gems-path` variable points to where you have extra
+gems installed that have extra step definitions. For example, if you use
+[bundler](https://github.com/bundler/bundler) to install gems for your
+project and put them in a `gems/` directory via:
+```shell
+bundle install --path ./gems
+```
+
 ## Key Bindings
 
-In order to get goto-step-definition to work, you must install the ruby_parser gem (version 2.0.x).For example:
+In order to get goto-step-definition to work, you must install the ruby_parser gem (version 2.0.x) and gherkin (version 2.11.8). For example:
 
 ```
 gem install ruby_parser --version "~> 2.0.5"
+gem install gherkin --version 2.11.8
 ```
 
 Keybinding          | Description
@@ -59,7 +74,6 @@ Keybinding          | Description
 <kbd>C-c ,f</kbd>   | Verify all features in project. (Available in feature and ruby files)
 <kbd>C-c ,r</kbd>   | Repeat the last verification process.
 <kbd>C-c ,g</kbd>   | Go to step-definition under point (requires ruby_parser gem >= 2.0.5)
-
 
 ## Supported languages
 
