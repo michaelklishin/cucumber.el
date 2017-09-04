@@ -107,6 +107,11 @@
   :type 'boolean
   :group 'feature-mode)
 
+(defcustom feature-use-chruby nil
+  "t when Chruby is in use. (Requires chruby.el)"
+  :type 'boolean
+  :group 'feature-mode)
+
 (defcustom feature-root-marker-file-name "features"
   "file to look for to find the project root."
   :group 'feature-mode
