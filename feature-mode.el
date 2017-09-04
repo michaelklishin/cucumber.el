@@ -36,6 +36,9 @@
 ;; If using RVM, set `feature-use-rvm' to `t' to enable RVM
 ;; support. This requires `rvm.el'.
 ;;
+;; If using Chruby, set `feature-use-chruby' to `t' to enable
+;; Chruby support. This requires `chruby.el'
+;;
 ;; Language used in feature file is automatically detected from
 ;; "language: [2-letter ISO-code]" tag in feature file.  You can
 ;; choose the language feature-mode should use in case autodetection
@@ -667,6 +670,8 @@ are loaded on startup.  If nil, don't load snippets.")
           (compilation-scroll-output t))
       (if feature-use-rvm
           (rvm-activate-corresponding-ruby))
+      (if feature-use-chruby
+          (chruby-use-corresponding))
       (compile (construct-cucumber-command command-template opts-str feature-arg) t))))
 
 (defun feature-root-directory-p (a-directory)
