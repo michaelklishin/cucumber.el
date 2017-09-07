@@ -80,6 +80,18 @@ Keybinding          | Description
 At the moment, Cucumber.el supports whatever your Cucumber supports.
 Just configure it to load i18n.yml from your Gherkin gem sources.
 
+## Support for docker-compose
+
+If the project path contains a docker-compose.yml file, Cucumber is executed through docker-compose.
+
+The following variables can be set to change the behavior related too this:
+
+Variable                           |  Type   | Description
+-----------------------------------|---------|-------------------------------------------
+`feature-use-docker-compose`       | boolean | Use docker-compose when available
+`feature-docker-compose-command`   | string  | The docker-compose command to execute
+`feature-docker-compose-container` | string  | Name of the container to start Cucumber in
+
 ## Project Development / Maintenance
 
 To run the tests in the source project, do the following:

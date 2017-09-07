@@ -137,6 +137,21 @@
   :type 'string
   :group 'feature-mode)
 
+;; Docker related
+(defcustom feature-use-docker-compose t
+  "Use docker-compose when docker-compose.yml exists in project."
+  :type 'boolean
+  :group 'feature-mode)
+
+(defcustom feature-docker-compose-command "docker-compose"
+  "Command to run docker-compose."
+  :type 'string
+  :group 'feature-mode)
+
+(defcustom feature-docker-compose-container "app"
+  "The container to run cucumber in."
+  :type 'string
+  :group 'feature-mode)
 
 ;;
 ;; Keywords and font locking
@@ -647,14 +662,22 @@ are loaded on startup.  If nil, don't load snippets.")
   (and (project-file-exists "Gemfile")
        (executable-find "bundle")))
 
+(defun should-run-docker-compose ()
+  "Determines if docker-compose should be used."
+  (and (project-file-exists "docker-compose.yml")
+       feature-use-docker-compose))
+
 (defun construct-cucumber-command (command-template opts-str feature-arg)
   "Creates a complete command to launch cucumber"
   (let ((base-command
          (concat (replace-regexp-in-string
                   "{options}" opts-str
-                  (replace-regexp-in-string "{feature}" feature-arg command-template) t t))))
-    (concat (if (can-run-bundle) "bundle exec " "")
-            base-command)))
+                  (replace-regexp-in-string "{feature}"
+                                            (if (should-run-docker-compose) (replace-regexp-in-string (feature-project-root) "" feature-arg) feature-arg)
+                                            command-template) t t))))
+    (concat (if (should-run-docker-compose) (concat feature-docker-compose-command " run " feature-docker-compose-container " ") "")
+            (concat (if (can-run-bundle) "bundle exec " "")
+            base-command))))
 
 (defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
