@@ -1,0 +1,12 @@
+version: '2'
+services:
+  app:
+    build: .
+    command: bundle exec cucumber -t ~@wip
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - bundle:/bundle
+      - .:/myapp
+
+volumes:
+  bundle: {}
