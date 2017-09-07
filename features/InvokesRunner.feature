@@ -51,7 +51,7 @@ Feature: Invokes Runner
     When I invoke feature-verify-all-scenarios-in-buffer on "features/test.feature"
     Then the output should match:
       """
-      ^docker-compose run app rake cucumber CUCUMBER_OPTS="" FEATURE=".+test.feature"
+      ^docker-compose run app rake cucumber CUCUMBER_OPTS="" FEATURE="features/test.feature"
       """
 
   Scenario: Uses docker-compose when docker-compose.yml present but no Gemfile
@@ -62,7 +62,7 @@ Feature: Invokes Runner
     When I invoke feature-verify-all-scenarios-in-buffer on "features/test.feature"
     Then the output should match:
       """
-      ^docker-compose run app cucumber .+test.feature
+      ^docker-compose run app cucumber\s*\"features/test.feature\"
       """
 
   Scenario: Uses docker-compose with bundler exec cucumber when Gemfile and docker-compose.yml present but no Rakefile
@@ -73,7 +73,7 @@ Feature: Invokes Runner
     When I invoke feature-verify-all-scenarios-in-buffer on "features/test.feature"
     Then the output should match:
       """
-      ^docker-compose run app bundle exec cucumber .+test.feature
+      ^docker-compose run app bundle exec cucumber\s*\"features/test.feature\"
       """
 
   Scenario: Uses docker-compose with bundler exec rake when Gemfile and docker-compose.yml and Rakefile present
@@ -84,5 +84,5 @@ Feature: Invokes Runner
     When I invoke feature-verify-all-scenarios-in-buffer on "features/test.feature"
     Then the output should match:
       """
-      ^docker-compose run app bundle exec rake cucumber CUCUMBER_OPTS="" FEATURE=".+test.feature"
+      ^docker-compose run app bundle exec rake cucumber CUCUMBER_OPTS="" FEATURE="features/test.feature"
       """

@@ -672,7 +672,9 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((base-command
          (concat (replace-regexp-in-string
                   "{options}" opts-str
-                  (replace-regexp-in-string "{feature}" feature-arg command-template) t t))))
+                  (replace-regexp-in-string "{feature}"
+                                            (if (should-run-docker-compose) (replace-regexp-in-string (feature-project-root) "" feature-arg) feature-arg)
+                                            command-template) t t))))
     (concat (if (should-run-docker-compose) (concat feature-docker-compose-command " run " feature-docker-compose-container " ") "")
             (concat (if (can-run-bundle) "bundle exec " "")
             base-command))))
