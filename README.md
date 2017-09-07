@@ -87,7 +87,7 @@ If the project path contains a docker-compose.yml file, Cucumber is executed thr
 The following variables can be set to change the behavior related too this:
 
 Variable                           |  Type   | Description
------------------------------------------------------------------------------------------
+-----------------------------------|---------|-------------------------------------------
 `feature-use-docker-compose`       | boolean | Use docker-compose when available
 `feature-docker-compose-command`   | string  | The docker-compose command to execute
 `feature-docker-compose-container` | string  | Name of the container to start Cucumber in
