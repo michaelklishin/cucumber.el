@@ -54,6 +54,7 @@ class Step
       when String
         pieces, regexp = [], value.dup
         regexp.gsub!(/\$\w+/) { |match| pieces << match; "TOKEN" }
+        regexp.gsub!(/(?=\{)(.*?)(\})/, "TOKEN")
         regexp = Regexp.escape(regexp)
         regexp.gsub!(/TOKEN/) { |match| "(.*)" }
         Regexp.new("^#{regexp}$")
