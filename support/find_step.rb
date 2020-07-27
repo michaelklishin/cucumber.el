@@ -1,69 +1,103 @@
+# frozen_string_literal: true
+
 require 'rubygems'
 gem 'ruby_parser'
-# >= 2.11.8 because of https://github.com/cucumber/gherkin/commit/90121f513000b89fce4d24c4e7dfdae00a5b177f
-gem 'gherkin', '>= 2.11.8', '< 4.0.0'
+gem 'cucumber-gherkin'
+gem 'cucumber'
 
 require 'ruby_parser'
 require 'yaml'
 require 'gherkin'
-require 'gherkin/formatter/json_formatter'
+require 'cucumber'
 
-class StepExtractor < Gherkin::Formatter::JSONFormatter
-  def initialize
-    super(StringIO.new)
+# Extracts step information
+class StepExtractor
+  def initialize(ast)
+    @ast = ast
   end
 
-  # returns a Hash describing step at the line or nil if nothing
+  # Returns a Hash describing step at the line or nil if nothing
   # executable found
   def step_at(line)
-    @feature_hashes[0]['elements'].each do |element|
-      element['steps'].each do |step|
-        if step['line'] == line
-          if element['examples']
-            rows = element['examples'][0]['rows'].each
-            header = rows.next['cells']
-            examples = []
-            loop do
-              row = rows.next['cells']
-              example = {}
-              row.each_with_index do |val, idx|
-                example[header[idx]] = val
-              end
-              examples.push(example)
-            end
-            step['examples'] = examples
-          end
-          return step
-        end
+    @ast[:feature].children.each do |element|
+      node = element.scenario || element.background
+      next unless node
+
+      node.steps.each do |step|
+        next unless step.location.line == line
+
+        return step_result(step, node)
       end
     end
     nil
   end
+
+  # Return hash of step info
+  def step_result(step, node)
+    result = { 'name' => step.text }
+    result unless node.try(:examples)
+
+    add_example_info(node, result)
+  end
+
+  # Adds extracted example info to a result
+  def add_example_info(node, result)
+    headers = example_headers(node)
+    result['examples'] = []
+    node.examples[0].table_body.each do |row|
+      example = {}
+      row.cells.each_with_index { |cell, i| example[headers[i]] = cell.value }
+      result['examples'] << example
+    end
+    result
+  end
+
+  # Returns an array for example table headers
+  def example_headers(node)
+    node.examples[0].table_header.cells.map(&:value)
+  end
 end
 
+# Class to represent a step
 class Step
   attr_reader :file, :line, :regexp
+
   def initialize(regexp, file, line)
-    @file, @line = file, line
+    @file = file
+    @line = line
     self.regexp = regexp
   end
 
   def regexp=(value)
-    @regexp =
-      case value
-      when String
-        pieces, regexp = [], value.dup
-        regexp.gsub!(/\$\w+/) { |match| pieces << match; "TOKEN" }
-        regexp.gsub!(/(?=\{)(.*?)(\})/, "TOKEN")
-        regexp = Regexp.escape(regexp)
-        regexp.gsub!(/TOKEN/) { |match| "(.*)" }
-        Regexp.new("^#{regexp}$")
-      when Regexp
-        value
-      else
-        STDERR.puts "Warning: invalid parameter to Given/When/Then on #{file}:#{line}.  Expected Regexp or String, got #{value.class} #{value.inspect}"
-        Regexp.new(/^INVALID PARAM$/)
-      end
+    @regexp = convert_to_regexp(value)
+  end
+
+  # Converts a given value to a RegExp
+  def convert_to_regexp(value)
+    case value
+    when String
+      create_regexp(value)
+    when Regexp
+      value
+    else
+      warn "Warning: #{file}:#{line} expected Regexp or String, got "\
+        "#{value.class} #{value.inspect}"
+      Regexp.new(/^INVALID PARAM$/)
+    end
+  end
+
+  # Return a regexp created from a string
+  def create_regexp(value)
+    pieces = []
+    regexp = value.dup
+    regexp.gsub!(/\$\w+/) do |match|
+      pieces << match
+      'TOKEN'
+    end
+    regexp.gsub!(/(?=\{)(.*?)(\})/, 'TOKEN')
+    regexp = Regexp.escape(regexp)
+    regexp.gsub!(/TOKEN/) { |_| '(.*)' }
+    Regexp.new("^#{regexp}$")
   end
 
   def match?(text)
@@ -71,6 +105,7 @@ class Step
   end
 end
 
+# Step parser
 class StepParser
   attr_accessor :steps, :file
 
@@ -83,64 +118,77 @@ class StepParser
 
   def extract_steps(sexp)
     return unless sexp.is_a?(Sexp)
+
     case sexp.first
     when :block
-      sexp[1..-1].each do |child_sexp|
-        extract_steps(child_sexp)
-      end
+      sexp[1..-1].each { |child_sexp| extract_steps(child_sexp) }
     when :iter
-      child_sexp = sexp[1]
-      return unless child_sexp[0] == :call && @keywords.include?(child_sexp[2])
-      regexp = child_sexp[3][1]
-      @steps << Step.new(regexp, file, child_sexp.line)
+      step = create_step(sexp[1])
+      @steps << step if step
     else
-      sexp.each do |child|
-        extract_steps(child)
-      end
+      sexp.each { |child| extract_steps(child) }
     end
   end
+
+  def create_step(sexp)
+    return unless sexp[0] == :call && @keywords.include?(sexp[2])
+
+    Step.new(sexp[3][1], file, sexp.line)
+  end
+end
+
+def results_to_alist(results)
+  results.uniq! { |(_, file, line)| [file, line] }
+  pairs = results.map do |(input, file, line)|
+    "(#{input.inspect} . #{[file, line].join(':').inspect})"
+  end
+  "(#{pairs.join})"
 end
 
 iso_code, feature_path, line, step_search_path, step_search_path_extra, = ARGV
-extractor = StepExtractor.new
-parser = Gherkin::Parser::Parser.new(extractor, true, 'root', false, iso_code)
-parser.parse(IO.read(feature_path), feature_path, 0)
+token_scanner = Gherkin::TokenScanner.new(IO.read(feature_path))
+ast_builder = Gherkin::AstBuilder.new(Cucumber::Messages::IdGenerator::UUID.new)
+parser = Gherkin::Parser.new(ast_builder)
+extractor = StepExtractor.new(parser.parse(token_scanner))
+
 step_info = extractor.step_at(line.to_i)
+raise "Error: No step at #{feature_path}:#{line}." unless step_info
+
 inputs = if step_info['examples']
-  # If the step has example placeholders, we should substitute them
-  # and provide user a choice
-  placeholders = step_info['examples'].first.keys.map { |key| %r(<(#{key})>) }
-  step_info['examples'].map do |example|
-    step_info['name'].gsub(Regexp.union(placeholders)) do |p|
-      example[p.gsub(/[<>]/, '')]
-    end
-  end.uniq
-else
-  [step_info['name']]
-end
+           # If the step has example placeholders, we should substitute them
+           # and provide user a choice
+           holders = step_info['examples'].first.keys.map { |key| /<(#{key})>/ }
+           step_info['examples'].map do |example|
+             step_info['name'].gsub(Regexp.union(holders)) do |p|
+               example[p.gsub(/[<>]/, '')]
+             end
+           end.uniq
+         else
+           [step_info['name']]
+         end
 quick_exit = inputs.size == 1
 
-def results_to_alist(results)
-  results.uniq! { |(_, file, line)| [file, line]}
-  pairs = results.reduce("") do |acc, (input, file, line)|
-    acc << sprintf("(%s . %s)", input.inspect, [file, line].join(":").inspect)
-  end
-  "(#{pairs})"
-end
-
 results = []
-keywords = Gherkin::I18n.get(iso_code).step_keywords[1..-1].map { |k| k.strip.to_sym }
+dialect = Gherkin::Dialect.for(iso_code)
+keywords = [
+  dialect.given_keywords[1].strip.to_sym,
+  dialect.when_keywords[1].strip.to_sym,
+  dialect.and_keywords[1].strip.to_sym,
+  dialect.then_keywords[1].strip.to_sym,
+  dialect.but_keywords[1].strip.to_sym
+]
 files = Dir[step_search_path]
-files.push(*Dir[step_search_path_extra]) if !step_search_path_extra.nil?
-files.each_with_index do |file, i|
+files.push(*Dir[step_search_path_extra]) unless step_search_path_extra.nil?
+
+files.each do |file|
   StepParser.new(file, keywords).steps.each do |step|
     inputs.each do |input_text|
-      if step.match?(input_text)
-        results.push([input_text, step.file, step.line])
-        if quick_exit
-          print results_to_alist(results)
-          exit
-        end
+      next unless step.match?(input_text)
+
+      results.push([input_text, step.file, step.line])
+      if quick_exit
+        print results_to_alist(results)
+        exit
       end
     end
   end

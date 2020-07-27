@@ -9,3 +9,4 @@ Version 0.5 (not yet released)
 * Changed behavior of running cucumber to run `feature-rake-command`
   if a Rakefile is present, otherwise `feature-cucumber-command`.
 * Prefix command run with `bundle exec ` when Gemfile is present.
+* Support for latest version cucumber gem
