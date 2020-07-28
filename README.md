@@ -60,11 +60,11 @@ bundle install --path ./gems
 
 ## Key Bindings
 
-In order to get goto-step-definition to work, you must install the ruby_parser gem (version 2.0.x) and gherkin (version 2.11.8). For example:
+In order to get goto-step-definition to work, you must install the ruby_parser gem (version 2.0.x) and cucumber-gherkin (version 2.11.8). For example:
 
 ```
-gem install ruby_parser --version "~> 2.0.5"
-gem install gherkin --version 2.11.8
+gem install ruby_parser --version "~> 3.14.2"
+gem install cucumber-gherkin --version 14.0.1
 ```
 
 Keybinding          | Description
@@ -73,7 +73,7 @@ Keybinding          | Description
 <kbd>C-c ,s</kbd>   | Verify the scenario under the point in the current buffer.
 <kbd>C-c ,f</kbd>   | Verify all features in project. (Available in feature and ruby files)
 <kbd>C-c ,r</kbd>   | Repeat the last verification process.
-<kbd>C-c ,g</kbd>   | Go to step-definition under point (requires ruby_parser gem >= 2.0.5)
+<kbd>C-c ,g</kbd>   | Go to step-definition under point (requires ruby_parser gem >= 3.14.2)
 
 ## Supported languages
 
@@ -104,7 +104,7 @@ You may have to use `sudo` to run the gem install command.
 
 ## LICENSE
 
-Copyright (C) 2008 — 2016 Michael Klishin and other contributors
+Copyright (C) 2008 — 2020 Michael Klishin and other contributors
 
 You can redistribute it and/or modify it under the terms of the GNU
 General Public License either version 2 of the License, or (at your

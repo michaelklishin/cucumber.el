@@ -11,7 +11,7 @@ clean::
 	rm -f $(PKG_DIR).tar
 
 test::
-	bundle exec cucumber -t ~@wip
+	bundle exec cucumber -t 'not @wip'
 
 clean::
 	rm -rf tmp
