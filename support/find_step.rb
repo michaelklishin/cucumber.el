@@ -35,7 +35,9 @@ class StepExtractor
   # Return hash of step info
   def step_result(step, node)
     result = { 'name' => step.text }
-    result unless node.try(:examples)
+    return result unless node.try(:examples)
+
+    return result if node.examples[0].nil?
 
     add_example_info(node, result)
   end
