@@ -86,6 +86,7 @@
 (eval-when-compile (require 'cl))
 (require 'thingatpt)
 (require 'etags)
+(require 'xref)
 
 (defcustom feature-cucumber-command "cucumber {options} \"{feature}\""
   "command used to run cucumber when there is no Rakefile"
@@ -756,7 +757,7 @@ are loaded on startup.  If nil, don't load snippets.")
   (feature-find-step-definition
     (lambda (project-root file line-no)
       (progn
-        (ring-insert find-tag-marker-ring (point-marker))
+        (xref-push-marker-stack)
         (find-file file)
         (goto-char (point-min))
         (forward-line (1- line-no))))))
