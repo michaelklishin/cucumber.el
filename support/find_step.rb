@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'rubygems'
-gem 'ruby_parser'
-gem 'cucumber-gherkin'
+gem 'ruby_parser', "~> 3.14.2"
+gem 'cucumber-gherkin', "14.0.1"
 gem 'cucumber'
 
 require 'ruby_parser'
