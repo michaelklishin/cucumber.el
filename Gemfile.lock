@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.0.4.1)
+    activesupport (7.0.4.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
@@ -15,7 +15,7 @@ GEM
       thor (~> 1.0)
     builder (3.2.4)
     childprocess (4.0.0)
-    concurrent-ruby (1.1.10)
+    concurrent-ruby (1.2.2)
     contracts (0.16.0)
     cucumber (4.1.0)
       builder (~> 3.2, >= 3.2.3)
@@ -53,7 +53,7 @@ GEM
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     middleware (0.1.0)
-    minitest (5.17.0)
+    minitest (5.18.0)
     multi_test (0.1.2)
     protobuf-cucumber (3.10.8)
       activesupport (>= 3.2)
@@ -71,7 +71,7 @@ GEM
       ffi (>= 1.0.0)
     thor (1.2.1)
     thread_safe (0.3.6)
-    tzinfo (2.0.5)
+    tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
 
 PLATFORMS
