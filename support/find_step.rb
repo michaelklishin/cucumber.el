@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require 'rubygems'
-gem 'ruby_parser', "~> 3.14.2"
-gem 'cucumber-gherkin', "14.0.1"
+
+gem 'ruby_parser'
+gem 'cucumber-gherkin'
 gem 'cucumber'
 
 require 'ruby_parser'
@@ -19,7 +20,7 @@ class StepExtractor
   # Returns a Hash describing step at the line or nil if nothing
   # executable found
   def step_at(line)
-    @ast[:feature].children.each do |element|
+    @ast.feature.children.each do |element|
       node = element.scenario || element.background
       next unless node
 
@@ -35,7 +36,7 @@ class StepExtractor
   # Return hash of step info
   def step_result(step, node)
     result = { 'name' => step.text }
-    return result unless node.try(:examples)
+    return result unless node.respond_to?(:examples) && node&.examples
 
     return result if node.examples[0].nil?
 
