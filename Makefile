@@ -18,3 +18,6 @@ clean::
 
 distclean::
 	rm -f *~ */*~
+
+sh:
+	docker compose run --rm app bash
