@@ -22,7 +22,7 @@ Feature: Indentation support
       | foo    | bar    |
       | baz    | bat    |
       """
-    When I run `emacs --batch -l ../../feature-mode.el tables.feature --eval "(progn (feature-mode) (indent-region (point-min) (point-max) nil) (princ (buffer-string)))"`
+    When I invoke "(indent-region (point-min) (point-max))" on "tables.features"
     Then the output should contain:
       """
       Feature:

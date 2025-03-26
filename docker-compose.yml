@@ -1,12 +1,10 @@
-version: '2'
+version: '3'
+
 services:
   app:
     build: .
-    command: bundle exec cucumber -t ~@wip
+    environment:
+      RUBY_DEBUG_NO_RELINE: true
+      CUCUMBER_PUBLISH_QUIET: true
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - bundle:/bundle
-      - .:/myapp
-
-volumes:
-  bundle: {}
+      - .:/app
