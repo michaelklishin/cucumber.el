@@ -1,5 +1,5 @@
-FROM ruby:2.4.1
-RUN apt-get update -qq && apt-get install -y emacs24-nox
+FROM ruby:3.2-slim
+RUN apt-get update -qq && apt-get install -y emacs-nox
 
 # install docker
 RUN apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
