@@ -1,7 +1,13 @@
 Emacs Feature Mode Change Log
 =============================
 
-Version 0.5 (not yet released)
+Version 0.6 <2025-03-27 Thu>
+-----------------------------
+
+* Upgrade dependencies (Ruby 3, Gherkin 27, Cucumber 9).
+* Adapt and fix `feature-goto-step-definition`.
+
+Version 0.5 (skipped)
 ------------------------------
 
 * Added setting `feature-rake-command`, and changed the default

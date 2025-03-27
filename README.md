@@ -60,11 +60,11 @@ bundle install --path ./gems
 
 ## Key Bindings
 
-In order to get goto-step-definition to work, you must install the ruby_parser gem (version 2.0.x) and cucumber-gherkin (version 2.11.8). For example:
+In order to get goto-step-definition to work, you must install the ruby_parser gem and cucumber-gherkin:
 
 ```
-gem install ruby_parser --version "~> 3.14.2"
-gem install cucumber-gherkin --version 14.0.1
+gem install ruby_parser
+gem install cucumber-gherkin
 ```
 
 Keybinding          | Description
@@ -94,17 +94,18 @@ Variable                           |  Type   | Description
 
 ## Project Development / Maintenance
 
-To run the tests in the source project, do the following:
+To run the tests in the source project, you can use the `make test`
+command. If possible please use the Docker setup provided:
 
-    gem install bundler
-    bundle
-    make test
-
-You may have to use `sudo` to run the gem install command.
+```sh
+docker compose build
+make sh # drops into a shell within the container
+make test
+```
 
 ## LICENSE
 
-Copyright (C) 2008 — 2020 Michael Klishin and other contributors
+Copyright (C) 2008 — 2025 Michael Klishin and other contributors
 
 You can redistribute it and/or modify it under the terms of the GNU
 General Public License either version 2 of the License, or (at your

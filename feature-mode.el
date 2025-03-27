@@ -1,5 +1,5 @@
 ;;; feature-mode.el --- Major mode for editing Gherkin (i.e. Cucumber) user stories
-;;; Version: 0.4
+;;; Version: 0.6
 ;;; Author: Michael Klishin
 ;;; URL: https://github.com/michaelklishin/cucumber.el
 ;;; Uploader: Kao Félix
@@ -56,9 +56,9 @@
 ;;
 ;;
 ;; In order to get goto-step-definition to work, you must install the
-;; ruby_parser gem (version 2.0.x). For example:
+;; ruby_parser gem:
 ;;
-;;    gem install ruby_parser --version=2.0.5
+;;    gem install ruby_parser
 ;;
 ;; (be sure and use the ruby-interpreter that emacs will use based on
 ;; `exec-path')
