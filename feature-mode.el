@@ -630,14 +630,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (setq comment-end "")
   (setq parse-sexp-ignore-comments t)
   (set (make-local-variable 'indent-tabs-mode) 'nil)
-  (set (make-local-variable 'indent-line-function) 'feature-indent-line)
-  (set (make-local-variable 'font-lock-defaults)
-       (list (feature-font-lock-keywords-for (feature-detect-language)) nil nil))
-  (set (make-local-variable 'font-lock-keywords)
-       (feature-font-lock-keywords-for (feature-detect-language)))
-  (set (make-local-variable 'imenu-generic-expression)
-       `(("Scenario:" ,(feature-scenario-name-re (feature-detect-language)) 3)
-         ("Background:" ,(feature-background-re (feature-detect-language)) 1))))
+  (set (make-local-variable 'indent-line-function) 'feature-indent-line))
 
 (defun feature-minor-modes ()
   "Enable/disable all minor modes for feature mode."
