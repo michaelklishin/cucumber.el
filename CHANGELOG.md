@@ -1,6 +1,13 @@
 Emacs Feature Mode Change Log
 =============================
 
+Version 0.6.1 <2025-03-28 Fri>
+-----------------------------
+
+* Use newer translations from Gherkin.
+* Rework font locking.
+* Support the "Rule" keyword.
+
 Version 0.6 <2025-03-27 Thu>
 -----------------------------
 

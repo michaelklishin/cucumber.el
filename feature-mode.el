@@ -316,6 +316,8 @@ by `feature-indent-offset' spaces."
 (defun feature-background-re (language)
   (feature-build-keywords-re (feature--translated-keywords-for 'background language)))
 
+(defun feature-rule-re (language)
+  (feature-build-keywords-re (feature--translated-keywords-for 'rule language)))
 
 (defun feature-given-re (language)
   (feature-build-keywords-re (feature--translated-keywords-for 'given language)))
