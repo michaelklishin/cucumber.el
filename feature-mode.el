@@ -26,9 +26,6 @@
 ;; ;; optional configurations
 ;; ;; default language if .feature doesn't have "# language: fi"
 ;; ;(setq feature-default-language "fi")
-;; ;; point to cucumber languages.yml or gherkin i18n.yml to use
-;; ;; exactly the same localization your cucumber uses
-;; ;(setq feature-default-i18n-file "/path/to/gherkin/gem/i18n.yml")
 ;; ;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
@@ -46,14 +43,13 @@
 ;; (setq feature-default-language "en")
 ;; to your .emacs
 ;;
-;; Translations are loaded from ~/.emacs.d/elisp/feature-mode/i18n.yml
-;; by default.  You can configure feature-mode to load translations
-;; directly from cucumber languages.yml or gherkin i18n.yml.  Just add
-;; (setq feature-default-i18n-file
-;;  "/usr/lib/ruby/gems/1.8/gems/cucumber-0.4.4/lib/cucumber/languages.yml")
-;; to your .emacs before
-;; (require 'feature-mode)
+;; A copy of the Gherkin translations found at:
 ;;
+;; https://github.com/cucumber/gherkin/blob/main/gherkin-languages.json
+;;
+;; is shipped with the repo to figure out translated keywords. Should
+;; it fall out of date you can customise `feature-i18n-file' to point
+;; at another JSON file.
 ;;
 ;; In order to get goto-step-definition to work, you must install the
 ;; ruby_parser gem:
@@ -175,71 +171,15 @@ by `feature-indent-offset' spaces."
   (or (boundp 'font-lock-variable-name-face)
       (setq font-lock-variable-name-face font-lock-type-face)))
 
-(defun load-gherkin-i10n (filename)
-  "Read and parse Gherkin l10n from given file."
-  (interactive "Load l10n file: ")
-  (with-temp-buffer
-    (insert-file-contents filename)
-    (parse-gherkin-l10n)))
-
-(defun parse-gherkin-l10n ()
-  (let (languages-alist)
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (if (try-find-next-language)
-            (let ((lang-beg (+ (point) 1))
-                  (lang-end (progn (end-of-line) (- (point) 2)))
-                  (kwds-beg (+ (point) 1))
-                  (kwds-end (progn (try-find-next-language) (point))))
-              (add-to-list
-               'languages-alist
-               (cons
-                (filter-buffer-substring lang-beg lang-end)
-                (parse-gherkin-l10n-translations kwds-beg kwds-end)))))))
-    (nreverse languages-alist)))
-
-(defun try-find-next (regexp)
-  (let (search-result)
-    (setq search-result (search-forward-regexp regexp nil t))
-    (if search-result
-        (beginning-of-line)
-      (goto-char (point-max)))
-    search-result))
-
-(defun try-find-next-language ()
-  (try-find-next "^\"[^\"]+\":"))
-
-(defun try-find-next-translation ()
-  (try-find-next "^  \\([^ :]+\\): +\"?\\*?|?\\([^\"\n]+\\)\"?"))
-
-(defun parse-gherkin-l10n-translations (beg end)
-  (let (translations-alist)
-    (save-excursion
-      (save-restriction
-        (narrow-to-region beg end)
-        (goto-char (point-min))
-        (while (not (eobp))
-          (if (try-find-next-translation)
-              (let ((kwname (match-string-no-properties 1))
-                    (kw     (match-string-no-properties 2)))
-                (add-to-list
-                 'translations-alist
-                 (cons
-                  (intern kwname)
-                  (if (or (equal kwname "name")
-                          (equal kwname "native"))
-                      kw
-                    (build-keyword-matcher kw))))))
-          (end-of-line))))
-    (nreverse translations-alist)))
-
-(defun build-keyword-matcher (keyword)
-  (concat "^[ \t]*\\(" (replace-regexp-in-string "|" "\\\\|" keyword) "\\):?"))
+(defun load-gherkin-i10n (filepath)
+  "Read and parse Gherkin translations from the file at FILEPATH."
+    (with-temp-buffer
+      (insert-file-contents filepath)
+      (json-parse-string (buffer-string) :object-type 'alist))) ;; use the native list conversion
 
 (defvar feature-default-language "en")
 (defvar feature-default-directory "features")
-(defvar feature-default-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/i18n.yml")))
+(defvar feature-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/gherkin-languages.json")))
 
 (defface feature-background-keyword-face
   '((t (:inherit font-lock-keyword-face :weight bold)))
@@ -297,19 +237,8 @@ by `feature-indent-offset' spaces."
   :group 'feature-mode)
 
 (defconst feature-keywords-per-language
-  (if (file-readable-p feature-default-i18n-file)
-      (load-gherkin-i10n feature-default-i18n-file)
-    '(("en" . ((feature    . "^ *\\(Feature\\):")
-               (background . "^ *\\(Background\\):")
-               (scenario   . "^ *\\(Scenario\\):")
-               (scenario_outline .
-                                 "^ *\\(Scenario Outline\\):")
-               (given      . "^ *\\(Given\\) ")
-               (when       . "^ *\\(When\\) ")
-               (then       . "^ *\\(Then\\) ")
-               (but        . "^ *\\(But\\) ")
-               (and        . "^ *\\(And\\) ")
-               (examples   . "^ *\\(Examples\\|Scenarios\\):"))))))
+  (load-gherkin-i10n feature-default-i18n-file))
+
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)

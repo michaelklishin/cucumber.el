@@ -32,10 +32,13 @@ Set default language if .feature doesn't have "# language: fi"
 (setq feature-default-language "fi")
 ```
 
-Point to cucumber languages.yml or gherkin i18n.yml to use
-exactly the same localization your cucumber uses
+A copy of [the Gherkin
+translations](https://github.com/cucumber/gherkin/blob/main/gherkin-languages.json)
+is shipped with the repo to figure out translations. Should you need
+to override it:
+
 ```lisp
-(setq feature-default-i18n-file "/path/to/gherkin/gem/i18n.yml")
+(setq feature-i18n-file "/path/to/gherkin/gem/gherkin-translations.json")
 ```
 
 Load feature-mode
@@ -77,8 +80,9 @@ Keybinding          | Description
 
 ## Supported languages
 
-At the moment, Cucumber.el supports whatever your Cucumber supports.
-Just configure it to load i18n.yml from your Gherkin gem sources.
+At the moment, Cucumber.el supports whatever your Cucumber
+supports. If guesses the language based on the `# language: <language code>`
+directive at the top of the spec.
 
 ## Support for docker-compose
 
