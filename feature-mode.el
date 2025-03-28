@@ -155,6 +155,10 @@ by `feature-indent-offset' spaces."
   :type 'string
   :group 'feature-mode)
 
+(defgroup feature-mode nil
+  "Major mode for editing feature (Cucumber/Gherkin) files."
+  :group 'faces)
+
 ;;
 ;; Externals
 ;;
@@ -236,6 +240,61 @@ by `feature-indent-offset' spaces."
 (defvar feature-default-language "en")
 (defvar feature-default-directory "features")
 (defvar feature-default-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/i18n.yml")))
+
+(defface feature-background-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Background keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-and-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for Background keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-but-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for But keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-examples-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Examples keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-feature-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Feature keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-given-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for Given keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-rule-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Rule keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-scenario-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Scenario keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-scenarioOutline-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Scenario Outline keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-then-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for Then keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-when-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight 'when' keywords in feature files."
+  :group 'feature-mode)
 
 (defconst feature-keywords-per-language
   (if (file-readable-p feature-default-i18n-file)
