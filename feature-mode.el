@@ -186,7 +186,7 @@ by `feature-indent-offset' spaces."
   "Read and parse Gherkin translations from the file at FILEPATH."
     (with-temp-buffer
       (insert-file-contents filepath)
-      (json-parse-string (buffer-string) :object-type 'alist))) ;; use the native list conversion
+      (json-parse-string (buffer-string) :object-type 'alist :array-type 'list)))
 
 (defconst feature-keywords-per-language
   (load-gherkin-i10n feature-i18n-file))
@@ -295,7 +295,7 @@ by `feature-indent-offset' spaces."
 (defun feature-build-keywords-re (keywords)
   (eval `(rx line-start
              (zero-or-more space)
-             (or ,@(append keywords nil))
+             (or ,@keywords)
              (optional ":"))))
 
 (defun feature--translated-keywords-for (keyword language)
