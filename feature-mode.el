@@ -26,9 +26,6 @@
 ;; ;; optional configurations
 ;; ;; default language if .feature doesn't have "# language: fi"
 ;; ;(setq feature-default-language "fi")
-;; ;; point to cucumber languages.yml or gherkin i18n.yml to use
-;; ;; exactly the same localization your cucumber uses
-;; ;(setq feature-default-i18n-file "/path/to/gherkin/gem/i18n.yml")
 ;; ;; and load it
 ;; (require 'feature-mode)
 ;; (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
@@ -46,14 +43,13 @@
 ;; (setq feature-default-language "en")
 ;; to your .emacs
 ;;
-;; Translations are loaded from ~/.emacs.d/elisp/feature-mode/i18n.yml
-;; by default.  You can configure feature-mode to load translations
-;; directly from cucumber languages.yml or gherkin i18n.yml.  Just add
-;; (setq feature-default-i18n-file
-;;  "/usr/lib/ruby/gems/1.8/gems/cucumber-0.4.4/lib/cucumber/languages.yml")
-;; to your .emacs before
-;; (require 'feature-mode)
+;; A copy of the Gherkin translations found at:
 ;;
+;; https://github.com/cucumber/gherkin/blob/main/gherkin-languages.json
+;;
+;; is shipped with the repo to figure out translated keywords. Should
+;; it fall out of date you can customise `feature-i18n-file' to point
+;; at another JSON file.
 ;;
 ;; In order to get goto-step-definition to work, you must install the
 ;; ruby_parser gem:
@@ -87,6 +83,7 @@
 (require 'thingatpt)
 (require 'etags)
 (require 'xref)
+(require 'rx)
 
 (defcustom feature-cucumber-command "cucumber {options} \"{feature}\""
   "command used to run cucumber when there is no Rakefile"
@@ -155,6 +152,10 @@ by `feature-indent-offset' spaces."
   :type 'string
   :group 'feature-mode)
 
+(defgroup feature-mode nil
+  "Major mode for editing feature (Cucumber/Gherkin) files."
+  :group 'faces)
+
 ;;
 ;; Externals
 ;;
@@ -171,106 +172,79 @@ by `feature-indent-offset' spaces."
   (or (boundp 'font-lock-variable-name-face)
       (setq font-lock-variable-name-face font-lock-type-face)))
 
-(defun load-gherkin-i10n (filename)
-  "Read and parse Gherkin l10n from given file."
-  (interactive "Load l10n file: ")
-  (with-temp-buffer
-    (insert-file-contents filename)
-    (parse-gherkin-l10n)))
-
-(defun parse-gherkin-l10n ()
-  (let (languages-alist)
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (if (try-find-next-language)
-            (let ((lang-beg (+ (point) 1))
-                  (lang-end (progn (end-of-line) (- (point) 2)))
-                  (kwds-beg (+ (point) 1))
-                  (kwds-end (progn (try-find-next-language) (point))))
-              (add-to-list
-               'languages-alist
-               (cons
-                (filter-buffer-substring lang-beg lang-end)
-                (parse-gherkin-l10n-translations kwds-beg kwds-end)))))))
-    (nreverse languages-alist)))
-
-(defun try-find-next (regexp)
-  (let (search-result)
-    (setq search-result (search-forward-regexp regexp nil t))
-    (if search-result
-        (beginning-of-line)
-      (goto-char (point-max)))
-    search-result))
-
-(defun try-find-next-language ()
-  (try-find-next "^\"[^\"]+\":"))
-
-(defun try-find-next-translation ()
-  (try-find-next "^  \\([^ :]+\\): +\"?\\*?|?\\([^\"\n]+\\)\"?"))
-
-(defun parse-gherkin-l10n-translations (beg end)
-  (let (translations-alist)
-    (save-excursion
-      (save-restriction
-        (narrow-to-region beg end)
-        (goto-char (point-min))
-        (while (not (eobp))
-          (if (try-find-next-translation)
-              (let ((kwname (match-string-no-properties 1))
-                    (kw     (match-string-no-properties 2)))
-                (add-to-list
-                 'translations-alist
-                 (cons
-                  (intern kwname)
-                  (if (or (equal kwname "name")
-                          (equal kwname "native"))
-                      kw
-                    (build-keyword-matcher kw))))))
-          (end-of-line))))
-    (nreverse translations-alist)))
-
-(defun build-keyword-matcher (keyword)
-  (concat "^[ \t]*\\(" (replace-regexp-in-string "|" "\\\\|" keyword) "\\):?"))
+(defconst feature-mode--keywords
+  '(feature background scenario scenario_outline given when then but and examples rule))
 
 (defvar feature-default-language "en")
 (defvar feature-default-directory "features")
-(defvar feature-default-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/i18n.yml")))
+(defvar feature-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/gherkin-languages.json")))
+
+(defun feature-get-language-data (language)
+  (assoc (intern (substring-no-properties language)) feature-keywords-per-language))
+
+(defun load-gherkin-i10n (filepath)
+  "Read and parse Gherkin translations from the file at FILEPATH."
+    (with-temp-buffer
+      (insert-file-contents filepath)
+      (json-parse-string (buffer-string) :object-type 'alist :array-type 'list)))
 
 (defconst feature-keywords-per-language
-  (if (file-readable-p feature-default-i18n-file)
-      (load-gherkin-i10n feature-default-i18n-file)
-    '(("en" . ((feature    . "^ *\\(Feature\\):")
-               (background . "^ *\\(Background\\):")
-               (scenario   . "^ *\\(Scenario\\):")
-               (scenario_outline .
-                                 "^ *\\(Scenario Outline\\):")
-               (given      . "^ *\\(Given\\) ")
-               (when       . "^ *\\(When\\) ")
-               (then       . "^ *\\(Then\\) ")
-               (but        . "^ *\\(But\\) ")
-               (and        . "^ *\\(And\\) ")
-               (examples   . "^ *\\(Examples\\|Scenarios\\):"))))))
+  (load-gherkin-i10n feature-i18n-file))
 
-(defconst feature-font-lock-keywords
-  '((feature      (0 font-lock-keyword-face)
-                  (".*" nil nil (0 font-lock-type-face t)))
-    (background . (0 font-lock-keyword-face))
-    (scenario     (0 font-lock-keyword-face)
-                  (".*" nil nil (0 font-lock-function-name-face nil)))
-    (scenario_outline
-     (0 font-lock-keyword-face)
-     (".*" nil nil (0 font-lock-function-name-face t)))
-    (given      . font-lock-keyword-face)
-    (when       . font-lock-keyword-face)
-    (then       . font-lock-keyword-face)
-    (but        . font-lock-keyword-face)
-    (and        . font-lock-keyword-face)
-    (examples   . font-lock-keyword-face)
-    ("<[^>]*>"  . font-lock-variable-name-face)
-    ("^ *@.*"   . font-lock-preprocessor-face)
-    ("^ *#.*"     0 font-lock-comment-face t)))
+(defface feature-background-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Background keyword in Cucumber features."
+  :group 'feature-mode)
 
+(defface feature-and-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for Background keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-but-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for But keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-examples-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Examples keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-feature-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Feature keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-given-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for Given keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-rule-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Rule keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-scenario-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Scenario keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-scenarioOutline-keyword-face
+  '((t (:inherit font-lock-keyword-face :weight bold)))
+  "Face for Scenario Outline keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-then-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for Then keyword in Cucumber features."
+  :group 'feature-mode)
+
+(defface feature-when-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight 'when' keywords in feature files."
+  :group 'feature-mode)
 
 ;;
 ;; Keymap
@@ -318,32 +292,47 @@ by `feature-indent-offset' spaces."
 (defconst feature-pystring-re "^[ \t]*\"\"\"$"
   "Regexp matching a pystring")
 
+(defun feature-build-keywords-re (keywords)
+  (eval `(rx line-start
+             (zero-or-more space)
+             (or ,@keywords)
+             (optional ":"))))
+
+(defun feature--translated-keywords-for (keyword language)
+  (cdr (assoc keyword (cdr (feature-get-language-data language)))))
+
 (defun feature-feature-re (language)
-  (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'feature language)))
 
 (defun feature-scenario-re (language)
-  (cdr (assoc 'scenario (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'scenario language)))
+
+(defun feature-scenario_outline-re (language)
+  (feature-build-keywords-re (feature--translated-keywords-for 'scenarioOutline language)))
 
 (defun feature-examples-re (language)
-  (cdr (assoc 'examples (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'examples language)))
 
 (defun feature-background-re (language)
-  (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'background language)))
+
+(defun feature-rule-re (language)
+  (feature-build-keywords-re (feature--translated-keywords-for 'rule language)))
 
 (defun feature-given-re (language)
-  (cdr (assoc 'given (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'given language)))
 
 (defun feature-when-re (language)
-  (cdr (assoc 'when (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'when language)))
 
 (defun feature-then-re (language)
-  (cdr (assoc 'then (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'then language)))
 
 (defun feature-and-re (language)
-  (cdr (assoc 'and (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'and language)))
 
 (defun feature-but-re (language)
-  (cdr (assoc 'but (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'but language)))
 
 ;;
 ;; Variables
@@ -540,18 +529,6 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (feature-indent-line))
 (ad-activate 'orgtbl-tab)
 
-(defun feature-font-lock-keywords-for (language)
-  (let ((result-keywords . ()))
-    (dolist (pair feature-font-lock-keywords)
-      (let* ((keyword (car pair))
-             (font-locking (cdr pair))
-             (language-keyword (cdr (assoc keyword
-                                           (cdr (assoc
-                                                 language
-                                                 feature-keywords-per-language))))))
-
-        (push (cons (or language-keyword keyword) font-locking) result-keywords)))
-    result-keywords))
 
 (defun feature-detect-language ()
   (save-excursion
@@ -571,20 +548,35 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (setq comment-end "")
   (setq parse-sexp-ignore-comments t)
   (set (make-local-variable 'indent-tabs-mode) 'nil)
-  (set (make-local-variable 'indent-line-function) 'feature-indent-line)
-  (set (make-local-variable 'font-lock-defaults)
-       (list (feature-font-lock-keywords-for (feature-detect-language)) nil nil))
-  (set (make-local-variable 'font-lock-keywords)
-       (feature-font-lock-keywords-for (feature-detect-language)))
-  (set (make-local-variable 'imenu-generic-expression)
-       `(("Scenario:" ,(feature-scenario-name-re (feature-detect-language)) 3)
-         ("Background:" ,(feature-background-re (feature-detect-language)) 1))))
+  (set (make-local-variable 'indent-line-function) 'feature-indent-line))
 
 (defun feature-minor-modes ()
   "Enable/disable all minor modes for feature mode."
   (turn-on-orgtbl)
   (set (make-local-variable 'electric-indent-functions)
        (list (lambda (arg) 'no-indent))))
+
+(defun feature-mode--fontlock-for-keyword (keyword language)
+  (let ((re-function (intern (format "feature-%s-re" keyword)))
+        (face (intern (format "feature-%s-keyword-face" keyword))))
+    `(,(funcall re-function language) 0 ',face)))
+
+(defun feature-mode--fontlock-regexps (language)
+  (mapcar
+   (lambda (keyword) (feature-mode--fontlock-for-keyword keyword language))
+   feature-mode--keywords))
+
+(defvar feature-mode--fontlock-static
+  '(("<[^>]*>"  . font-lock-variable-name-face)
+    ("^ *@.*"   . font-lock-preprocessor-face)
+    ("^ *#.*"     0 font-lock-comment-face t)))
+
+(defun feature-mode-setup-fontlock ()
+  (let ((language (feature-detect-language)))
+    (setq font-lock-defaults (list
+                              (append
+                               feature-mode--fontlock-static
+                               (feature-mode--fontlock-regexps language))))))
 
 ;;
 ;; Mode function
@@ -600,6 +592,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (setq major-mode 'feature-mode)
   (feature-mode-variables)
   (feature-minor-modes)
+  (feature-mode-setup-fontlock)
   (run-mode-hooks 'feature-mode-hook))
 
 ;;;###autoload
@@ -631,9 +624,6 @@ are loaded on startup.  If nil, don't load snippets.")
 ;;
 ;; Verifying features
 ;;
-
-(defun feature-scenario-name-re (language)
-  (concat (feature-scenario-re (feature-detect-language)) "\\( Outline:?\\)?[[:space:]]+\\(.*\\)$"))
 
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.
