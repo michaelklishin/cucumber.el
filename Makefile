@@ -1,5 +1,5 @@
-PKG_DIR = feature-mode-0.4
-FILES_TO_PACK = feature-mode.el feature-mode-pkg.el i18n.yml snippets support
+PKG_DIR = feature-mode-0.6.1
+FILES_TO_PACK = feature-mode.el feature-mode-pkg.el gherkin-languages.json snippets support
 
 package:
 	mkdir $(PKG_DIR)

@@ -83,6 +83,7 @@
 (require 'thingatpt)
 (require 'etags)
 (require 'xref)
+(require 'rx)
 
 (defcustom feature-cucumber-command "cucumber {options} \"{feature}\""
   "command used to run cucumber when there is no Rakefile"
@@ -171,15 +172,24 @@ by `feature-indent-offset' spaces."
   (or (boundp 'font-lock-variable-name-face)
       (setq font-lock-variable-name-face font-lock-type-face)))
 
+(defconst feature-mode--keywords
+  '(feature background scenario scenario_outline given when then but and examples rule))
+
+(defvar feature-default-language "en")
+(defvar feature-default-directory "features")
+(defvar feature-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/gherkin-languages.json")))
+
+(defun feature-get-language-data (language)
+  (assoc (intern (substring-no-properties language)) feature-keywords-per-language))
+
 (defun load-gherkin-i10n (filepath)
   "Read and parse Gherkin translations from the file at FILEPATH."
     (with-temp-buffer
       (insert-file-contents filepath)
       (json-parse-string (buffer-string) :object-type 'alist))) ;; use the native list conversion
 
-(defvar feature-default-language "en")
-(defvar feature-default-directory "features")
-(defvar feature-i18n-file (expand-file-name (concat (file-name-directory load-file-name) "/gherkin-languages.json")))
+(defconst feature-keywords-per-language
+  (load-gherkin-i10n feature-i18n-file))
 
 (defface feature-background-keyword-face
   '((t (:inherit font-lock-keyword-face :weight bold)))
@@ -236,30 +246,6 @@ by `feature-indent-offset' spaces."
   "Face used to highlight 'when' keywords in feature files."
   :group 'feature-mode)
 
-(defconst feature-keywords-per-language
-  (load-gherkin-i10n feature-default-i18n-file))
-
-
-(defconst feature-font-lock-keywords
-  '((feature      (0 font-lock-keyword-face)
-                  (".*" nil nil (0 font-lock-type-face t)))
-    (background . (0 font-lock-keyword-face))
-    (scenario     (0 font-lock-keyword-face)
-                  (".*" nil nil (0 font-lock-function-name-face nil)))
-    (scenario_outline
-     (0 font-lock-keyword-face)
-     (".*" nil nil (0 font-lock-function-name-face t)))
-    (given      . font-lock-keyword-face)
-    (when       . font-lock-keyword-face)
-    (then       . font-lock-keyword-face)
-    (but        . font-lock-keyword-face)
-    (and        . font-lock-keyword-face)
-    (examples   . font-lock-keyword-face)
-    ("<[^>]*>"  . font-lock-variable-name-face)
-    ("^ *@.*"   . font-lock-preprocessor-face)
-    ("^ *#.*"     0 font-lock-comment-face t)))
-
-
 ;;
 ;; Keymap
 ;;
@@ -306,32 +292,45 @@ by `feature-indent-offset' spaces."
 (defconst feature-pystring-re "^[ \t]*\"\"\"$"
   "Regexp matching a pystring")
 
+(defun feature-build-keywords-re (keywords)
+  (eval `(rx line-start
+             (zero-or-more space)
+             (or ,@(append keywords nil))
+             (optional ":"))))
+
+(defun feature--translated-keywords-for (keyword language)
+  (cdr (assoc keyword (cdr (feature-get-language-data language)))))
+
 (defun feature-feature-re (language)
-  (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'feature language)))
 
 (defun feature-scenario-re (language)
-  (cdr (assoc 'scenario (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'scenario language)))
+
+(defun feature-scenario_outline-re (language)
+  (feature-build-keywords-re (feature--translated-keywords-for 'scenarioOutline language)))
 
 (defun feature-examples-re (language)
-  (cdr (assoc 'examples (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'examples language)))
 
 (defun feature-background-re (language)
-  (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'background language)))
+
 
 (defun feature-given-re (language)
-  (cdr (assoc 'given (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'given language)))
 
 (defun feature-when-re (language)
-  (cdr (assoc 'when (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'when language)))
 
 (defun feature-then-re (language)
-  (cdr (assoc 'then (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'then language)))
 
 (defun feature-and-re (language)
-  (cdr (assoc 'and (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'and language)))
 
 (defun feature-but-re (language)
-  (cdr (assoc 'but (cdr (assoc language feature-keywords-per-language)))))
+  (feature-build-keywords-re (feature--translated-keywords-for 'but language)))
 
 ;;
 ;; Variables
@@ -528,18 +527,6 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (feature-indent-line))
 (ad-activate 'orgtbl-tab)
 
-(defun feature-font-lock-keywords-for (language)
-  (let ((result-keywords . ()))
-    (dolist (pair feature-font-lock-keywords)
-      (let* ((keyword (car pair))
-             (font-locking (cdr pair))
-             (language-keyword (cdr (assoc keyword
-                                           (cdr (assoc
-                                                 language
-                                                 feature-keywords-per-language))))))
-
-        (push (cons (or language-keyword keyword) font-locking) result-keywords)))
-    result-keywords))
 
 (defun feature-detect-language ()
   (save-excursion
@@ -567,6 +554,28 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (set (make-local-variable 'electric-indent-functions)
        (list (lambda (arg) 'no-indent))))
 
+(defun feature-mode--fontlock-for-keyword (keyword language)
+  (let ((re-function (intern (format "feature-%s-re" keyword)))
+        (face (intern (format "feature-%s-keyword-face" keyword))))
+    `(,(funcall re-function language) 0 ',face)))
+
+(defun feature-mode--fontlock-regexps (language)
+  (mapcar
+   (lambda (keyword) (feature-mode--fontlock-for-keyword keyword language))
+   feature-mode--keywords))
+
+(defvar feature-mode--fontlock-static
+  '(("<[^>]*>"  . font-lock-variable-name-face)
+    ("^ *@.*"   . font-lock-preprocessor-face)
+    ("^ *#.*"     0 font-lock-comment-face t)))
+
+(defun feature-mode-setup-fontlock ()
+  (let ((language (feature-detect-language)))
+    (setq font-lock-defaults (list
+                              (append
+                               feature-mode--fontlock-static
+                               (feature-mode--fontlock-regexps language))))))
+
 ;;
 ;; Mode function
 ;;
@@ -581,6 +590,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
   (setq major-mode 'feature-mode)
   (feature-mode-variables)
   (feature-minor-modes)
+  (feature-mode-setup-fontlock)
   (run-mode-hooks 'feature-mode-hook))
 
 ;;;###autoload
@@ -612,9 +622,6 @@ are loaded on startup.  If nil, don't load snippets.")
 ;;
 ;; Verifying features
 ;;
-
-(defun feature-scenario-name-re (language)
-  (concat (feature-scenario-re (feature-detect-language)) "\\( Outline:?\\)?[[:space:]]+\\(.*\\)$"))
 
 (defun feature-verify-scenario-at-pos (&optional pos)
   "Run the scenario defined at pos.
